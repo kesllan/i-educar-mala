@@ -273,8 +273,8 @@ class clsPmieducarCandidatoFilaUnica extends Model
             && is_numeric($this->ref_cod_aluno)
         ) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
+            $gruda = '';
 
             if (is_numeric($this->ref_cod_serie)) {
                 $set .= "{$gruda}ref_cod_serie = {$this->ref_cod_serie}";
@@ -382,7 +382,7 @@ class clsPmieducarCandidatoFilaUnica extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $nome = null,
@@ -607,7 +607,7 @@ class clsPmieducarCandidatoFilaUnica extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -687,7 +687,7 @@ class clsPmieducarCandidatoFilaUnica extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

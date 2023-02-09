@@ -31,7 +31,7 @@ class ReleasePeriodService
 
         $stageType = $firstStage->ref_cod_modulo;
 
-        if ($stage === 'Rc' || $stage === 'An') {
+        if ($stage === 'Rc') {
             $stage = $stages->max('sequencial');
         }
 

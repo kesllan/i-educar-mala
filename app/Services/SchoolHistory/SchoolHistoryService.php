@@ -26,43 +26,35 @@ class SchoolHistoryService
         $year = 0;
         $level = 0;
         $certificationText = '';
-        $eja_show_course = config('legacy.report.historico_escolar.eja_exibir_curso', false);
 
         foreach ($data as $history) {
-            $course = trim($history['nome_curso']);
+            if (!$this->isValidLevelName($history['nm_serie'])) {
+                continue;
+            }
 
-            if ($course && $eja_show_course && $history['historico_grade_curso_id'] === SchoolHistory::GRADE_EJA) {
-                if (in_array($history['aprovado_eja'], [SchoolHistoryStatus::REPROVED, SchoolHistoryStatus::REPROVED_BY_ABSENCE])) {
-                    $certificationText = 'está reprovado no ';
-                } else {
-                    $certificationText = $history['aprovado_eja'] == SchoolHistoryStatus::ONGOING ? 'está cursando no ' : 'está aprovado no ';
-                }
-                $certificationText .= mb_strtoupper($course);
+            if (!in_array($history['aprovado'], $consideredStatus)) {
+                continue;
+            }
+
+            if ($history['ano'] < $year) {
+                continue;
+            }
+
+            if ($this->getLevelByName($history['nm_serie']) < $level) {
+                continue;
+            }
+
+            $year = $history['ano'];
+            $level = $history['nm_serie'];
+
+            $certificationText = $history['aprovado'] == SchoolHistoryStatus::ONGOING ? 'está cursando ' : 'concluiu ';
+
+            if ($this->isConclusiveLevelByGrade($history['nm_serie'], $history['historico_grade_curso_id'])) {
+                $certificationText .= 'o ENSINO FUNDAMENTAL';
             } else {
-                if (!$this->isValidLevelName($history['nm_serie'])) {
-                    continue;
-                }
-                if (!in_array($history['aprovado'], $consideredStatus)) {
-                    continue;
-                }
-                if ($history['ano'] < $year) {
-                    continue;
-                }
-                if ($this->getLevelByName($history['nm_serie']) < $level) {
-                    continue;
-                }
-
-                $year = $history['ano'];
-                $level = $history['nm_serie'];
-
-                $certificationText = $history['aprovado'] == SchoolHistoryStatus::ONGOING ? 'está cursando ' : 'concluiu ';
-                if ($this->isConclusiveLevelByGrade($history['nm_serie'], $history['historico_grade_curso_id'])) {
-                    $certificationText .= 'o ENSINO FUNDAMENTAL';
-                } else {
-                    $certificationText .= $history['historico_grade_curso_id'] == SchoolHistory::GRADE_SERIE ? 'a ' : 'o ';
-                    $certificationText .= $this->getLevelByName($history['nm_serie']);
-                    $certificationText .= $history['historico_grade_curso_id'] == SchoolHistory::GRADE_SERIE ? 'ª série' : 'º ano';
-                }
+                $certificationText .= $history['historico_grade_curso_id'] == SchoolHistory::GRADE_SERIE ? 'a ' : 'o ';
+                $certificationText .= $this->getLevelByName($history['nm_serie']);
+                $certificationText .= $history['historico_grade_curso_id'] == SchoolHistory::GRADE_SERIE ? 'ª série' : 'º ano';
             }
         }
 

@@ -2,18 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Builders\LegacyTransferRequestBuilder;
-use App\Models\Concerns\SoftDeletes\LegacySoftDeletes;
-use App\Traits\HasLegacyDates;
-use App\Traits\HasLegacyUserAction;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Model;
 
-class LegacyTransferRequest extends LegacyModel
+class LegacyTransferRequest extends Model
 {
-    use LegacySoftDeletes;
-    use HasLegacyUserAction;
-    use HasLegacyDates;
-
     /**
      * @var string
      */
@@ -23,8 +15,6 @@ class LegacyTransferRequest extends LegacyModel
      * @var string
      */
     protected $primaryKey = 'cod_transferencia_solicitacao';
-
-    public string $builder = LegacyTransferRequestBuilder::class;
 
     /**
      * @var array
@@ -36,6 +26,7 @@ class LegacyTransferRequest extends LegacyModel
         'ref_cod_matricula_entrada',
         'ref_cod_matricula_saida',
         'observacao',
+        'data_cadastro',
         'data_exclusao',
         'ativo',
         'data_transferencia',
@@ -46,11 +37,16 @@ class LegacyTransferRequest extends LegacyModel
     ];
 
     /**
+     * @var boolean
+     */
+    public $timestamps = false;
+
+    /**
      * Relação com a matricula de saída.
      *
      * @return BelongsTo
      */
-    public function oldRegistration(): BelongsTo
+    public function oldRegistration()
     {
         return $this->belongsTo(LegacyRegistration::class, 'ref_cod_matricula_saida');
     }
@@ -60,24 +56,28 @@ class LegacyTransferRequest extends LegacyModel
      *
      * @return BelongsTo
      */
-    public function newRegistration(): BelongsTo
+    public function newRegistration()
     {
         return $this->belongsTo(LegacyRegistration::class, 'ref_cod_matricula_entrada');
     }
 
     /**
-     * @return BelongsTo
+     * @param Builder $query
+     *
+     * @return Builder
      */
-    public function transferType(): BelongsTo
+    public function scopeActive($query)
     {
-        return $this->belongsTo(LegacyTransferType::class, 'ref_cod_transferencia_tipo');
+        return $query->where('ativo', 1);
     }
 
     /**
-     * @return BelongsTo
+     * @param Builder $query
+     *
+     * @return Builder
      */
-    public function destinationSchool(): BelongsTo
+    public function scopeUnattended($query)
     {
-        return $this->belongsTo(LegacySchool::class, 'ref_cod_escola_destino');
+        return $query->whereNull('ref_cod_matricula_entrada');
     }
 }

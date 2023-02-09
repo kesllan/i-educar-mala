@@ -15,7 +15,7 @@ class Registro10Fields implements RegistroEducacenso
     public $codigoInep;
 
     /**
-     * @var array
+     * @var string
      */
     public $localFuncionamento;
 
@@ -142,17 +142,7 @@ class Registro10Fields implements RegistroEducacenso
     /**
      * @var string
      */
-    public $dependenciaSalaEducacaoProfissional;
-
-    /**
-     * @var string
-     */
     public $dependenciaLaboratorioInformatica;
-
-    /**
-     * @var string
-     */
-    public $dependenciaLaboratorioEducacaoProfissional;
 
     /**
      * @var string
@@ -520,7 +510,7 @@ class Registro10Fields implements RegistroEducacenso
     public $recursosAcessibilidade;
 
     /**
-     * @var array
+     * @var string
      */
     public $usoInternet;
 
@@ -530,7 +520,7 @@ class Registro10Fields implements RegistroEducacenso
     public $acessoInternet;
 
     /**
-     * @var array
+     * @var string
      */
     public $equipamentosAcessoInternet;
 
@@ -640,12 +630,12 @@ class Registro10Fields implements RegistroEducacenso
     public $alimentacaoEscolarAlunos;
 
     /**
-     * @var array
+     * @var int
      */
     public $organizacaoEnsino;
 
     /**
-     * @var array
+     * @var int
      */
     public $instrumentosPedagogicos;
 
@@ -708,7 +698,6 @@ class Registro10Fields implements RegistroEducacenso
     public $recursoSinalizacaoVisual;
     public $recursoNenhum;
     public $equipamentosScanner;
-    public $equipamentosNenhum;
     public $acessoInternetAdministrativo;
     public $acessoInternetProcessoEnsino;
     public $acessoInternetAlunos;
@@ -733,12 +722,10 @@ class Registro10Fields implements RegistroEducacenso
     public $instrumentosPedagogicosInstrumentos;
     public $instrumentosPedagogicosJogos;
     public $instrumentosPedagogicosAtividadesCulturais;
-    public $instrumentosPedagogicosEducacaoProfissional;
     public $instrumentosPedagogicosPraticaDesportiva;
     public $instrumentosPedagogicosEducacaoIndigena;
     public $instrumentosPedagogicosEducacaoEtnicoRacial;
     public $instrumentosPedagogicosEducacaoCampo;
-    public $instrumentosPedagogicosNenhum;
     public $linguaIndigena;
     public $linguaPortuguesa;
     public $linguaIndigena1;

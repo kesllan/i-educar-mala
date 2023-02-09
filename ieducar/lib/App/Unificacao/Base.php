@@ -49,7 +49,7 @@ class App_Unificacao_Base
     {
         $stringCodigosDuplicados = implode(',', $this->codigosDuplicados);
 
-        foreach ($this->chavesDeletarDuplicados as $value) {
+        foreach ($this->chavesDeletarDuplicados as $key => $value) {
             $oldKeys = explode(',', $stringCodigosDuplicados);
             $this->storeLogOldDataByKeys($oldKeys, $value['tabela'], $value['coluna']);
             try {
@@ -81,21 +81,19 @@ class App_Unificacao_Base
     {
         $stringCodigosDuplicados = implode(',', $this->codigosDuplicados);
 
-        foreach ($this->chavesManterTodosVinculos as $value) {
+        foreach ($this->chavesManterTodosVinculos as $key => $value) {
             $oldKeys = explode(',', $stringCodigosDuplicados);
             $this->storeLogOldDataByKeys($oldKeys, $value['tabela'], $value['coluna']);
             $addSql = $this->buildSqlExtraBeforeUnification($value['tabela']);
 
-            if (Schema::hasTable($value['tabela'])) {
-                $this->db->Consulta(
-                    "
+            $this->db->Consulta(
+                "
                     UPDATE {$value['tabela']}
                     SET {$value['coluna']} = {$this->codigoUnificador}
                     {$addSql}
                     WHERE {$value['coluna']} IN ({$stringCodigosDuplicados})
                 "
-                );
-            }
+            );
         }
     }
 
@@ -105,13 +103,12 @@ class App_Unificacao_Base
         $chavesConsultar[] = $this->codigoUnificador;
         $chavesConsultarString = implode(',', $chavesConsultar);
 
-        foreach ($this->chavesManterPrimeiroVinculo as $value) {
+        foreach ($this->chavesManterPrimeiroVinculo as $key => $value) {
             $oldKeys = explode(',', $chavesConsultarString);
             $this->storeLogOldDataByKeys($oldKeys, $value['tabela'], $value['coluna']);
 
-            if (Schema::hasTable($value['tabela'])) {
-                $this->db->Consulta(
-                    "
+            $this->db->Consulta(
+                "
                     DELETE FROM {$value['tabela']}
                     WHERE {$value['coluna']} <>
                     (
@@ -123,16 +120,15 @@ class App_Unificacao_Base
                     )
                     AND {$value['coluna']} in ({$chavesConsultarString})
                 "
-                );
+            );
 
-                $this->db->Consulta(
-                    "
+            $this->db->Consulta(
+                "
                     UPDATE {$value['tabela']}
                     SET {$value['coluna']} = {$this->codigoUnificador}
                     WHERE {$value['coluna']} IN ({$chavesConsultarString})
                 "
-                );
-            }
+            );
         }
     }
 
@@ -141,7 +137,7 @@ class App_Unificacao_Base
         $todasChaves = array_merge($this->chavesManterPrimeiroVinculo, $this->chavesManterTodosVinculos);
         $todasTabelas = [];
 
-        foreach ($todasChaves as $value) {
+        foreach ($todasChaves as $key => $value) {
             $todasTabelas[$value['tabela']] = $value['tabela'];
         }
 
@@ -159,8 +155,8 @@ class App_Unificacao_Base
     {
         $tabelasEnvolvidas = $this->tabelasEnvolvidas();
 
-        foreach ($tabelasEnvolvidas as $tabela) {
-            $this->db->Consulta("ALTER TABLE IF EXISTS {$tabela} DISABLE TRIGGER ALL");
+        foreach ($tabelasEnvolvidas as $key => $tabela) {
+            $this->db->Consulta("ALTER TABLE {$tabela} DISABLE TRIGGER ALL");
         }
     }
 
@@ -168,10 +164,8 @@ class App_Unificacao_Base
     {
         $tabelasEnvolvidas = $this->tabelasEnvolvidas();
 
-        foreach ($tabelasEnvolvidas as $tabela) {
-            if (Schema::hasTable($tabela)) {
-                $this->db->Consulta("ALTER TABLE {$tabela} ENABLE TRIGGER ALL");
-            }
+        foreach ($tabelasEnvolvidas as $key => $tabela) {
+            $this->db->Consulta("ALTER TABLE {$tabela} ENABLE TRIGGER ALL");
         }
     }
 
@@ -226,10 +220,7 @@ class App_Unificacao_Base
      */
     private function getOldData($table, $key, $value)
     {
-        if (Schema::hasTable($table)) {
-            return DB::table($table)->whereIn($key, [$value])->get();
-        }
-        return collect();
+        return DB::table($table)->whereIn($key, [$value])->get();
     }
 
     /**

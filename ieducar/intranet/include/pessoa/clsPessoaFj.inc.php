@@ -214,7 +214,7 @@ class clsPessoaFj extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {

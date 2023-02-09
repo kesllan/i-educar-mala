@@ -22,9 +22,9 @@ class Portabilis_View_Helper_Input_Resource_SimpleSearchMenu extends Portabilis_
 
     protected function loadAssets()
     {
-        $jsFile = '/vendor/legacy/Portabilis/Assets/Javascripts/Frontend/Inputs/Resource/simpleSearchMenu.js';
+        $jsFile = '/modules/Portabilis/Assets/Javascripts/Frontend/Inputs/Resource/simpleSearchMenu.js';
         Portabilis_View_Helper_Application::loadJavascript($this->viewInstance, $jsFile);
-        $style = '/vendor/legacy/Portabilis/Assets/Stylesheets/Frontend/Inputs/Resource/simpleSearchMenu.css';
+        $style = '/modules/Portabilis/Assets/Stylesheets/Frontend/Inputs/Resource/simpleSearchMenu.css';
         Portabilis_View_Helper_Application::loadStylesheet($this->viewInstance, $style);
     }
 }

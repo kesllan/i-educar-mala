@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LegacyValueRoundingTable extends Model
 {
@@ -38,9 +37,4 @@ class LegacyValueRoundingTable extends Model
      * @var bool
      */
     public $timestamps = false;
-
-    public function roundingTable(): BelongsTo
-    {
-        return $this->belongsTo(LegacyRoundingTable::class, 'tabela_arredondamento_id');
-    }
 }

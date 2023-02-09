@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Menu;
-use App\Traits\HasLegacyDates;
 use App\User;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection as SupportCollection;
@@ -19,10 +19,8 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property Collection|Menu[] $menus
  * @property Collection|User[] $users
  */
-class LegacyUserType extends LegacyModel
+class LegacyUserType extends Model
 {
-    use HasLegacyDates;
-
     public const LEVEL_ADMIN = 1;
     public const LEVEL_INSTITUTIONAL = 2;
     public const LEVEL_SCHOOLING = 4;
@@ -52,20 +50,53 @@ class LegacyUserType extends LegacyModel
         'nm_tipo',
         'descricao',
         'ref_funcionario_cad',
+        'data_cadastro',
     ];
+
+    /**
+     * @return int
+     */
+    public function getLevelAttribute()
+    {
+        return $this->nivel;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNameAttribute()
+    {
+        return $this->nm_tipo;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescriptionAttribute()
+    {
+        return $this->descricao;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getActiveAttribute()
+    {
+        return boolval($this->ativo);
+    }
 
     /**
      * @return HasMany
      */
-    public function users(): HasMany
+    public function users()
     {
-        return $this->hasMany(LegacyUser::class, 'ref_cod_tipo_usuario');
+        return $this->hasMany(User::class, 'ref_cod_tipo_usuario', 'cod_tipo_usuario');
     }
 
     /**
      * @return BelongsToMany
      */
-    public function menus(): BelongsToMany
+    public function menus()
     {
         return $this->belongsToMany(
             Menu::class,
@@ -80,39 +111,39 @@ class LegacyUserType extends LegacyModel
     /**
      * Retorna os processos e níveis de permissão em uma coleção chave => valor.
      *
+     * @return Collection
      */
-    public function getProcesses(): SupportCollection
+    public function getProcesses()
     {
         if ($this->level === self::LEVEL_ADMIN) {
-            return collect(
-                Menu::all()
-                    ->pluck('id')
-                    ->mapWithKeys(static fn ($id) => [$id => self::CAN_REMOVE])
-            );
+            return collect(Menu::all()->pluck('id')->mapWithKeys(function ($id) {
+                return [$id => self::CAN_REMOVE];
+            }));
         }
 
-        return $this->menus()
-            ->get()
-            ->mapWithKeys(static function ($menu) {
-                $level = 0;
+        return $this->menus()->get()->mapWithKeys(function ($menu) {
+            $level = 0;
 
-                if ($menu->pivot->visualiza ?? false) {
-                    $level = 1;
-                }
+            if ($menu->pivot->visualiza ?? false) {
+                $level = 1;
+            }
 
-                if ($menu->pivot->cadastra ?? false) {
-                    $level = 2;
-                }
+            if ($menu->pivot->cadastra ?? false) {
+                $level = 2;
+            }
 
-                if ($menu->pivot->exclui ?? false) {
-                    $level = 3;
-                }
+            if ($menu->pivot->exclui ?? false) {
+                $level = 3;
+            }
 
-                return [$menu->id => $level];
-            });
+            return [$menu->id => $level];
+        });
     }
 
-    public function getLevelDescriptions(): SupportCollection
+    /**
+     * @return SupportCollection
+     */
+    public function getLevelDescriptions()
     {
         $levels = [
             self::LEVEL_ADMIN => 'Poli-institucional',
@@ -121,34 +152,8 @@ class LegacyUserType extends LegacyModel
             self::LEVEL_LIBRARY => 'Biblioteca',
         ];
 
-        return collect($levels)->filter(fn ($value, $key) => $this->level <= $key);
-    }
-
-    protected function level(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->nivel
-        );
-    }
-
-    protected function name(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->nm_tipo
-        );
-    }
-
-    protected function description(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->descricao
-        );
-    }
-
-    protected function active(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => (bool)$this->ativo
-        );
+        return collect($levels)->filter(function ($value, $key) {
+            return $this->level <= $key;
+        });
     }
 }

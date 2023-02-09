@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class LegacyEmployeeRole extends LegacyModel
+class LegacyEmployeeRole extends Model
 {
     /**
      * @var string
@@ -21,6 +21,7 @@ class LegacyEmployeeRole extends LegacyModel
      * @var array
      */
     protected $fillable = [
+        'cod_servidor_funcao',
         'matricula',
         'ref_cod_funcao',
         'ref_cod_servidor',
@@ -32,15 +33,13 @@ class LegacyEmployeeRole extends LegacyModel
      */
     public $timestamps = false;
 
-    protected function id(): Attribute
+    public function getIdAttribute(): int
     {
-        return Attribute::make(
-            get: fn () => $this->cod_servidor_funcao
-        );
+        return $this->cod_servidor_funcao;
     }
 
     public function role(): BelongsTo
     {
-        return $this->belongsTo(LegacyRole::class, 'ref_cod_funcao');
+        return $this->belongsTo('App\\Models\\LegacyRole', 'ref_cod_funcao');
     }
 }

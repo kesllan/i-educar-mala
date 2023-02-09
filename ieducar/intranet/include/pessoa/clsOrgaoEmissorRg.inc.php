@@ -34,6 +34,8 @@ class clsOrgaoEmissorRg
             $db->Consulta("INSERT INTO {$this->schema}.{$this->tabela} ( sigla, descricao, situacao$campos ) VALUES ( '{$this->sigla}', '{$this->descricao}', '{$this->situacao}'$values )");
 
             return $db->InsertId("{$this->tabela}_idorg_rg_seq");
+
+            return true;
         }
 
         return false;
@@ -68,7 +70,7 @@ class clsOrgaoEmissorRg
         if (is_numeric($this->idorg_rg)) {
             $objDocumento = new clsDocumento(false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, $this->idorg_rg);
             if (!count($objDocumento->lista(false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, $this->idorg_rg))) {
-
+                $db = new clsBanco();
 
                 return true;
             }
@@ -78,11 +80,10 @@ class clsOrgaoEmissorRg
     /**
      * Exibe uma lista baseada nos parametros de filtragem passados
      *
-     * @return array|false
+     * @return Array
      */
     public function lista($str_sigla = false, $str_descricao = false, $str_situacao = false, $int_limite_ini = 0, $int_limite_qtd = false, $str_orderBy = false)
     {
-        $where = '';
         $whereAnd = 'WHERE ';
         if (is_string($str_sigla)) {
             $where .= "{$whereAnd}sigla LIKE '%$str_sigla%'";
@@ -128,7 +129,7 @@ class clsOrgaoEmissorRg
     /**
      * Retorna um array com os detalhes do objeto
      *
-     * @return array|false
+     * @return Array
      */
     public function detalhe()
     {

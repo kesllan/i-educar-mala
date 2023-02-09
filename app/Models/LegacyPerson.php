@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,9 +13,6 @@ use Illuminate\Support\Str;
  */
 class LegacyPerson extends Model
 {
-    public const CREATED_AT = 'data_cad';
-    public const UPDATED_AT = 'data_rev';
-
     /**
      * @var string
      */
@@ -30,22 +26,14 @@ class LegacyPerson extends Model
     /**
      * @var array
      */
-    protected $dates = [
-        'data_cad',
+    protected $fillable = [
+        'nome', 'data_cad', 'tipo', 'situacao', 'origem_gravacao', 'operacao', 'email'
     ];
 
     /**
-     * @var array
+     * @var bool
      */
-    protected $fillable = [
-        'nome',
-        'data_cad',
-        'tipo',
-        'situacao',
-        'origem_gravacao',
-        'operacao',
-        'email'
-    ];
+    public $timestamps = false;
 
     /**
      * @inheritDoc
@@ -67,24 +55,26 @@ class LegacyPerson extends Model
         });
     }
 
-    protected function id(): Attribute
+    /**
+     * @return string
+     */
+    public function getNameAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->idpes
-        );
+        return $this->nome;
     }
 
-    protected function name(): Attribute
+    /**
+     * @return HasOne
+     */
+    public function address()
     {
-        return Attribute::make(
-            get: fn () =>  $this->nome
-        );
+        return $this->hasOne(LegacyPersonAddress::class, 'idpes', 'idpes');
     }
 
     /**
      * @return HasMany
      */
-    public function phone(): HasMany
+    public function phone()
     {
         return $this->hasMany(LegacyPhone::class, 'idpes', 'idpes');
     }
@@ -92,7 +82,7 @@ class LegacyPerson extends Model
     /**
      * @return HasOne
      */
-    public function individual(): HasOne
+    public function individual()
     {
         return $this->hasOne(LegacyIndividual::class, 'idpes', 'idpes');
     }
@@ -100,7 +90,7 @@ class LegacyPerson extends Model
     /**
      * @return BelongsToMany
      */
-    public function deficiencies(): BelongsToMany
+    public function deficiencies()
     {
         return $this->belongsToMany(
             LegacyDeficiency::class,
@@ -115,7 +105,7 @@ class LegacyPerson extends Model
     /**
      * @return HasOne
      */
-    public function employee(): HasOne
+    public function employee()
     {
         return $this->hasOne(Employee::class, 'cod_servidor', 'idpes');
     }
@@ -123,7 +113,7 @@ class LegacyPerson extends Model
     /**
      * @return BelongsToMany
      */
-    public function considerableDeficiencies(): BelongsToMany
+    public function considerableDeficiencies()
     {
         return $this->deficiencies()->where('desconsidera_regra_diferenciada', false);
     }

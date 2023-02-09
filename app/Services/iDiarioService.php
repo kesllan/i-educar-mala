@@ -163,7 +163,6 @@ class iDiarioService
     /**
      * @param int       $studentId
      * @param \DateTime $exitDate
-     *
      * @doc https://github.com/portabilis/novo-educacao/pull/3626#issue-577687036
      *
      * @return array

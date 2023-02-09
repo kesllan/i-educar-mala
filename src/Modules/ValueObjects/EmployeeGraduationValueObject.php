@@ -23,4 +23,9 @@ class EmployeeGraduationValueObject
      * @var integer
      */
     public $collegeId;
+
+    /**
+     * @var integer
+     */
+    public $disciplineId;
 }

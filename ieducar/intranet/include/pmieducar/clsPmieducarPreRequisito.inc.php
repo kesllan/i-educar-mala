@@ -17,7 +17,7 @@ class clsPmieducarPreRequisito extends Model
 
     public function __construct($cod_pre_requisito = null, $ref_usuario_exc = null, $ref_usuario_cad = null, $schema_ = null, $tabela = null, $nome = null, $sql = null, $data_cadastro = null, $data_exclusao = null, $ativo = null)
     {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = "{$this->_schema}pre_requisito";
 
@@ -119,7 +119,6 @@ class clsPmieducarPreRequisito extends Model
     {
         if (is_numeric($this->cod_pre_requisito) && is_numeric($this->ref_usuario_exc)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_usuario_exc)) {
@@ -170,7 +169,7 @@ class clsPmieducarPreRequisito extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      */
     public function lista($int_cod_pre_requisito = null, $int_ref_usuario_exc = null, $int_ref_usuario_cad = null, $str_schema_ = null, $str_tabela = null, $str_nome = null, $str_sql = null, $date_data_cadastro_ini = null, $date_data_cadastro_fim = null, $date_data_exclusao_ini = null, $date_data_exclusao_fim = null, $int_ativo = null)
     {
@@ -264,7 +263,7 @@ class clsPmieducarPreRequisito extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -282,7 +281,7 @@ class clsPmieducarPreRequisito extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

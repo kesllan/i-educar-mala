@@ -2,19 +2,11 @@
 
 namespace App\Models;
 
-use App\Traits\HasInstitution;
-use App\Traits\HasLegacyDates;
-use App\Traits\HasLegacyUserAction;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 
-class LegacyStageType extends LegacyModel
+class LegacyStageType extends Model
 {
-    use HasLegacyUserAction;
-    use HasLegacyDates;
-    use HasInstitution;
-
     /**
      * @var string
      */
@@ -32,6 +24,8 @@ class LegacyStageType extends LegacyModel
         'cod_modulo',
         'ref_usuario_cad',
         'nm_tipo',
+        'data_cadastro',
+        'ref_cod_instituicao',
         'num_etapas',
         'descricao'
     ];
@@ -41,21 +35,12 @@ class LegacyStageType extends LegacyModel
      */
     public $timestamps = false;
 
-    public function academicYearStages(): HasMany
+    /**
+     * @return string
+     */
+    public function getNameAttribute()
     {
-        return $this->hasMany(LegacyAcademicYearStage::class, 'ref_cod_modulo');
-    }
-
-    public function schoolClassStage(): HasMany
-    {
-        return $this->hasMany(LegacySchoolClassStage::class, 'ref_cod_modulo');
-    }
-
-    protected function name(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => sprintf('%s - %d etapa(s)', $this->nm_tipo, $this->num_etapas)
-        );
+        return sprintf('%s - %d etapa(s)', $this->nm_tipo, $this->num_etapas);
     }
 
     /**
@@ -63,7 +48,7 @@ class LegacyStageType extends LegacyModel
      *
      * @return Builder
      */
-    public function scopeActive($query): Builder
+    public function scopeActive($query)
     {
         return $query->where('ativo', 1);
     }
@@ -78,7 +63,7 @@ class LegacyStageType extends LegacyModel
      *
      * @return bool
      */
-    public static function alreadyExists($name, $stagesNumber, $id = null): bool
+    public static function alreadyExists($name, $stagesNumber, $id = null)
     {
         return self::query()
             ->where('ativo', 1)
@@ -90,10 +75,8 @@ class LegacyStageType extends LegacyModel
             ->exists();
     }
 
-    protected function descricao(): Attribute
+    public function getDescricaoAttribute()
     {
-        return Attribute::make(
-            get: fn ($value) => str_replace(["\r\n", "\r", "\n"], '<br />', $value)
-        );
+        return str_replace(["\r\n", "\r", "\n"], '<br />', $this->attributes['descricao']);
     }
 }

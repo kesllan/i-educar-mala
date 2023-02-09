@@ -1,8 +1,7 @@
 <?php
 
-use Database\Factories\LegacyGradeFactory;
+use Database\Factories\LegacyLevelFactory;
 use Database\Factories\LegacyRegistrationFactory;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use PHPUnit\Framework\MockObject\MockObject;
 
 require_once __DIR__ . '/TestCommon.php';
@@ -12,8 +11,6 @@ require_once __DIR__ . '/TestCommon.php';
  */
 class AvaliacaoServiceSituacaoTest extends Avaliacao_Service_TestCommon
 {
-    use DatabaseTransactions;
-
     public function testSituacaoAluno()
     {
         $nota = new \stdClass();
@@ -42,7 +39,7 @@ class AvaliacaoServiceSituacaoTest extends Avaliacao_Service_TestCommon
         $registration = LegacyRegistrationFactory::new()
             ->create(
                 [
-                    'ref_ref_cod_serie' => LegacyGradeFactory::new()->create(),
+                    'ref_ref_cod_serie' => LegacyLevelFactory::new()->create(),
                     'dependencia' => true,
                 ]
             );

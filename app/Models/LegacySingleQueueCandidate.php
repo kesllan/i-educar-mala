@@ -2,16 +2,14 @@
 
 namespace App\Models;
 
-use App\Traits\HasLegacyDates;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class LegacySingleQueueCandidate extends LegacyModel
+class LegacySingleQueueCandidate extends Model
 {
-    use HasLegacyDates;
-
     /**
      * @var string
      */
@@ -34,6 +32,7 @@ class LegacySingleQueueCandidate extends LegacyModel
         'ref_cod_pessoa_exc',
         'ref_cod_matricula',
         'ano_letivo',
+        'data_cadastro',
         'data_exclusao',
         'data_solicitacao',
         'hora_solicitacao',

@@ -73,6 +73,8 @@ abstract class CoreExt_Enum extends CoreExt_Singleton implements ArrayAccess
      * @link   http://br2.php.net/manual/en/arrayaccess.offsetexists.php
      *
      * @param string|int $offset
+     *
+     * @return bool
      */
     public function offsetExists($offset): bool
     {

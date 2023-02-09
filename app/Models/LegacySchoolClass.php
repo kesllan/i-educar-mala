@@ -2,17 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Builders\LegacySchoolClassBuilder;
-use App\Traits\LegacyAttribute;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * LegacySchoolClass
@@ -29,46 +25,22 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property Carbon             $begin_academic_year
  * @property Carbon             $end_academic_year
  * @property LegacyCourse       $course
- * @property LegacyGrade        $grade
+ * @property LegacyLevel        $grade
  * @property LegacySchool       $school
  * @property LegacySchoolGrade  $schoolGrade
  * @property LegacyEnrollment[] $enrollments
- *
- * @method static LegacySchoolClassBuilder query()
  */
 class LegacySchoolClass extends Model
 {
-    use LegacyAttribute;
-
     /**
      * @var string
      */
     protected $table = 'pmieducar.turma';
 
-    public const CREATED_AT = 'data_cadastro';
-
     /**
      * @var string
      */
     protected $primaryKey = 'cod_turma';
-
-    /**
-     * Builder dos filtros
-     *
-     * @var string
-     */
-    protected string $builder = LegacySchoolClassBuilder::class;
-
-    /**
-     * Atributos legados para serem usados nas queries
-     *
-     * @var string[]
-     */
-    public $legacy = [
-        'id' => 'cod_turma',
-        'name' => 'nm_turma',
-        'year' => 'ano'
-    ];
 
     /**
      * @var array
@@ -77,6 +49,7 @@ class LegacySchoolClass extends Model
         'ref_usuario_cad',
         'ref_ref_cod_serie',
         'ref_ref_cod_escola',
+        'ref_cod_infra_predio_comodo',
         'nm_turma',
         'sgl_turma',
         'max_aluno',
@@ -137,77 +110,75 @@ class LegacySchoolClass extends Model
         'unidade_curricular',
     ];
 
-    protected function id(): Attribute
+    /**
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
+     * @return int
+     */
+    public function getIdAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->cod_turma,
-        );
+        return $this->cod_turma;
     }
 
-    protected function name(): Attribute
+    /**
+     * @return string
+     */
+    public function getNameAttribute()
     {
-        return Attribute::make(
-            get: function () {
-                if (empty($this->year)) {
-                    return $this->nm_turma;
-                }
-
-                return $this->nm_turma . ' (' . $this->year . ')';
-            },
-        );
+        return $this->nm_turma;
     }
 
-    protected function year(): Attribute
+    /**
+     * @return int
+     */
+    public function getYearAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->ano,
-        );
+        return $this->ano;
     }
 
-    protected function schoolId(): Attribute
+    /**
+     * @return int
+     */
+    public function getSchoolIdAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->ref_ref_cod_escola,
-        );
+        return $this->ref_ref_cod_escola;
     }
 
-    protected function courseId(): Attribute
+    /**
+     * @return int
+     */
+    public function getCourseIdAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->ref_cod_curso,
-        );
+        return $this->ref_cod_curso;
     }
 
-    protected function gradeId(): Attribute
+    /**
+     * @return int
+     */
+    public function getGradeIdAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->ref_ref_cod_serie,
-        );
+        return $this->ref_ref_cod_serie;
     }
 
-    protected function visible(): Attribute
+    /**
+     * @return int
+     */
+    public function getExemptedDisciplineIdAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->visivel,
-        );
+        return $this->ref_cod_disciplina_dispensada;
     }
 
-    protected function exemptedDisciplineId(): Attribute
+    /**
+     * @return int
+     */
+    public function getVacanciesAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->ref_cod_disciplina_dispensada,
-        );
-    }
+        $vacancies = $this->max_aluno - $this->getTotalEnrolled();
 
-    protected function vacancies(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                $vacancies = $this->max_aluno - $this->getTotalEnrolled();
-
-                return max($vacancies, 0);
-            },
-        );
+        return $vacancies > 0 ? $vacancies : 0;
     }
 
     /**
@@ -216,7 +187,7 @@ class LegacySchoolClass extends Model
      *
      * @return int
      */
-    public function getTotalEnrolled(): int
+    public function getTotalEnrolled()
     {
         return $this->enrollments()
             ->where('ativo', 1)
@@ -225,44 +196,30 @@ class LegacySchoolClass extends Model
             })->count();
     }
 
-    protected function beginAcademicYear(): Attribute
+    /**
+     * @return string|null
+     */
+    public function getBeginAcademicYearAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->stages()->orderBy('sequencial')->value('data_inicio'),
-        );
-    }
+        $calendar = $this->stages()->orderBy('sequencial')->first();
 
-    protected function endAcademicYear(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->stages()->orderByDesc('sequencial')->value('data_fim'),
-        );
+        return $calendar ? $calendar->data_inicio : null;
     }
 
     /**
-     * Séries
-     *
-     * @return BelongsToMany
+     * @return string|null
      */
-    public function grades(): BelongsToMany
+    public function getEndAcademicYearAttribute()
     {
-        return $this->belongsToMany(LegacyGrade::class, 'pmieducar.turma_serie', 'turma_id', 'serie_id');
-    }
+        $calendar = $this->stages()->orderByDesc('sequencial')->first();
 
-    /**
-     * Anos Letivos
-     *
-     * @return HasMany
-     */
-    public function academicYears(): HasMany
-    {
-        return $this->hasMany(LegacySchoolAcademicYear::class, 'ref_cod_escola', 'ref_ref_cod_escola')->whereColumn('escola_ano_letivo.ano', 'ano');
+        return $calendar ? $calendar->data_fim : null;
     }
 
     /**
      * @return BelongsTo
      */
-    public function course(): BelongsTo
+    public function course()
     {
         return $this->belongsTo(LegacyCourse::class, 'ref_cod_curso');
     }
@@ -270,9 +227,9 @@ class LegacySchoolClass extends Model
     /**
      * @return BelongsTo
      */
-    public function grade(): BelongsTo
+    public function grade()
     {
-        return $this->belongsTo(LegacyGrade::class, 'ref_ref_cod_serie');
+        return $this->belongsTo(LegacyLevel::class, 'ref_ref_cod_serie');
     }
 
     /**
@@ -280,7 +237,7 @@ class LegacySchoolClass extends Model
      *
      * @return BelongsTo
      */
-    public function school(): BelongsTo
+    public function school()
     {
         return $this->belongsTo(LegacySchool::class, 'ref_ref_cod_escola');
     }
@@ -290,7 +247,7 @@ class LegacySchoolClass extends Model
      *
      * @return HasMany
      */
-    public function enrollments(): HasMany
+    public function enrollments()
     {
         return $this->hasMany(LegacyEnrollment::class, 'ref_cod_turma', 'cod_turma');
     }
@@ -298,9 +255,9 @@ class LegacySchoolClass extends Model
     /**
      * @return HasMany
      */
-    public function stages(): HasMany
+    public function stages()
     {
-        if ($this->course?->is_standard_calendar) {
+        if ($this->course->is_standard_calendar) {
             return $this->hasMany(LegacyAcademicYearStage::class, 'ref_ref_cod_escola', 'ref_ref_cod_escola')
                 ->where('ref_ano', $this->year);
         }
@@ -311,12 +268,12 @@ class LegacySchoolClass extends Model
     /**
      * @return HasMany
      */
-    public function schoolClassStages(): HasMany
+    public function schoolClassStages()
     {
         return $this->hasMany(LegacySchoolClassStage::class, 'ref_cod_turma', 'cod_turma');
     }
 
-    public function multigrades(): HasMany
+    public function multigrades()
     {
         return $this->hasMany(LegacySchoolClassGrade::class, 'turma_id');
     }
@@ -331,10 +288,7 @@ class LegacySchoolClass extends Model
     public function getDiasSemanaAttribute($value)
     {
         if (is_string($value)) {
-            $value = explode(',', str_replace([
-                '{',
-                '}'
-            ], '', $value));
+            $value = explode(',', str_replace(['{', '}'], '', $value));
         }
 
         return $value;
@@ -365,11 +319,7 @@ class LegacySchoolClass extends Model
                 'registration' => function ($query) {
                     /** @var Builder $query */
                     $query->where('ano', $this->year);
-                    $query->whereIn('aprovado', [
-                        1,
-                        2,
-                        3
-                    ]);
+                    $query->whereIn('aprovado', [1, 2, 3]);
                     $query->with('student.person');
                 }
             ])
@@ -381,10 +331,12 @@ class LegacySchoolClass extends Model
     /**
      * @return BelongsTo
      */
-    public function schoolGrade(): BelongsTo
+    public function schoolGrade()
     {
-        return $this->belongsTo(LegacySchoolGrade::class, 'ref_ref_cod_escola', 'ref_cod_escola')
+        $belongsTo = $this->belongsTo(LegacySchoolGrade::class, 'ref_ref_cod_escola', 'ref_cod_escola')
             ->where('ref_cod_serie', $this->grade_id);
+
+        return $belongsTo;
     }
 
     /**
@@ -395,14 +347,16 @@ class LegacySchoolClass extends Model
     public function denyEnrollmentsWhenNoVacancy()
     {
         $schoolGrade = $this->schoolGrade;
+
         if (empty($schoolGrade)) {
             return true;
         }
+
         if (empty($schoolGrade->bloquear_enturmacao_sem_vagas)) {
             return true;
         }
 
-        return (bool)$schoolGrade->bloquear_enturmacao_sem_vagas;
+        return (bool) $schoolGrade->bloquear_enturmacao_sem_vagas;
     }
 
     /**
@@ -415,6 +369,7 @@ class LegacySchoolClass extends Model
         if (!$this->hora_inicial || !$this->hora_final) {
             return 0;
         }
+
         $startTime = Carbon::createFromTimeString($this->hora_inicial);
         $endTime = Carbon::createFromTimeString($this->hora_final);
 
@@ -424,7 +379,7 @@ class LegacySchoolClass extends Model
     /**
      * @return BelongsToMany
      */
-    public function disciplines(): BelongsToMany
+    public function disciplines()
     {
         return $this->belongsToMany(
             LegacyDiscipline::class,
@@ -444,7 +399,7 @@ class LegacySchoolClass extends Model
     /**
      * @return BelongsToMany
      */
-    public function gradeDisciplines(): BelongsToMany
+    public function gradeDisciplines()
     {
         return $this->belongsToMany(
             LegacyDiscipline::class,
@@ -462,33 +417,18 @@ class LegacySchoolClass extends Model
     /**
      * @return Collection
      */
-    public function getDisciplines(): Collection
+    public function getDisciplines()
     {
-        if ((bool)$this->multiseriada) {
-            $multigrades = $this->multigrades->pluck('serie_id')->toArray();
-
-            return LegacySchoolGradeDiscipline::query()
-                ->where('ref_ref_cod_escola', $this->school_id)
-                ->whereIn('ref_ref_cod_serie', $multigrades)
+        if ($this->course->is_standard_calendar) {
+            return $this->gradeDisciplines()
                 ->whereRaw('? = ANY(anos_letivos)', [$this->year])
-                ->get()
-                ->map(function ($schoolGrade) {
-                    return $schoolGrade->discipline;
-                });
-        }
-        $disciplinesOfSchoolClass = $this->disciplines()->get();
-        if ($disciplinesOfSchoolClass->count() > 0) {
-            return $disciplinesOfSchoolClass;
+                ->get();
         }
 
-        return LegacySchoolGradeDiscipline::query()
-            ->where('ref_ref_cod_escola', $this->school_id)
-            ->where('ref_ref_cod_serie', $this->grade_id)
-            ->whereRaw('? = ANY(anos_letivos)', [$this->year])
-            ->get()
-            ->map(function ($schoolGrade) {
-                return $schoolGrade->discipline;
-            });
+        return $this->disciplines()
+            ->where('ano_escolar_id', $this->grade_id)
+            ->where('escola_id', $this->school_id)
+            ->get();
     }
 
     /**
@@ -502,6 +442,7 @@ class LegacySchoolClass extends Model
         $evaluationRuleGradeYear = $this->hasOne(LegacyEvaluationRuleGradeYear::class, 'serie_id', 'ref_ref_cod_serie')
             ->where('ano_letivo', $this->ano)
             ->firstOrFail();
+
         if ($this->school->utiliza_regra_diferenciada && $evaluationRuleGradeYear->differentiatedEvaluationRule) {
             return $evaluationRuleGradeYear->differentiatedEvaluationRule;
         }
@@ -512,15 +453,22 @@ class LegacySchoolClass extends Model
     /**
      * Retorna o turno da turma.
      *
-     * @return BelongsTo
+     * Relação com turma_turno.
+     *
+     * @return bool | string
      */
-    public function period(): BelongsTo
+    public function period()
     {
         return $this->belongsTo(LegacyPeriod::class, 'turma_turno_id');
     }
 
-    public function inep(): HasOne
+    /**
+     * @param Builder $query
+     *
+     * @return Builder
+     */
+    public function scopeActive($query)
     {
-        return $this->hasOne(SchoolClassInep::class, 'cod_turma');
+        return $query->where('ativo', 1);
     }
 }

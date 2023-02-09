@@ -7,10 +7,12 @@ class Core_View extends clsBase
      *
      * @var CoreExt_Controller_Page_Interface
      */
-    protected $_pageController;
+    protected $_pageController = null;
 
     /**
      * Construtor.
+     *
+     * @param Core_Controller_Page_Interface $instance
      */
     public function __construct(Core_Controller_Page_Interface $instance)
     {
@@ -22,6 +24,7 @@ class Core_View extends clsBase
     /**
      * Setter.
      *
+     * @param Core_Controller_Page_Interface $instance
      *
      * @return Core_View Provê interface fluída
      */

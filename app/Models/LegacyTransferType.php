@@ -2,19 +2,10 @@
 
 namespace App\Models;
 
-use App\Traits\Ativo;
-use App\Traits\HasInstitution;
-use App\Traits\HasLegacyDates;
-use App\Traits\HasLegacyUserAction;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 
-class LegacyTransferType extends LegacyModel
+class LegacyTransferType extends Model
 {
-    use Ativo;
-    use HasLegacyDates;
-    use HasInstitution;
-    use HasLegacyUserAction;
-
     /**
      * @var string
      */
@@ -33,15 +24,11 @@ class LegacyTransferType extends LegacyModel
         'ref_usuario_cad',
         'nm_tipo',
         'desc_tipo',
+        'data_cadastro',
         'data_exclusao',
         'ativo',
+        'ref_cod_instituicao',
     ];
 
-    /**
-     * @return HasMany
-     */
-    public function transferRequests(): HasMany
-    {
-        return $this->hasMany(LegacyTransferRequest::class, 'ref_cod_transferencia_tipo');
-    }
+    public $timestamps = false;
 }

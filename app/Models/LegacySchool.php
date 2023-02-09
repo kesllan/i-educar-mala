@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Builders\LegacySchoolBuilder;
-use App\Traits\LegacyAttribute;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,15 +14,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  *
  * @property string            $name
  * @property LegacyInstitution $institution
- *
- * @method static LegacySchoolBuilder query()
  */
 class LegacySchool extends Model
 {
-    use LegacyAttribute;
-
-    public const CREATED_AT = 'data_cadastro';
-
     /**
      * @var string
      */
@@ -36,23 +28,6 @@ class LegacySchool extends Model
     protected $primaryKey = 'cod_escola';
 
     /**
-     * Builder dos filtros
-     *
-     * @var string
-     */
-    protected string $builder = LegacySchoolBuilder::class;
-
-    /**
-     * Atributos legados para serem usados nas queries
-     *
-     * @var string[]
-     */
-    public array $legacy = [
-        'id' => 'cod_escola',
-        'name' => 'fantasia'
-    ];
-
-    /**
      * @var array
      */
     protected $fillable = [
@@ -60,6 +35,7 @@ class LegacySchool extends Model
         'ref_usuario_cad',
         'ref_usuario_exc',
         'ref_cod_instituicao',
+        'ref_cod_escola_rede_ensino',
         'sigla',
         'data_cadastro',
         'data_exclusao',
@@ -81,27 +57,27 @@ class LegacySchool extends Model
         'codigo_ies',
         'qtd_vice_diretor',
         'qtd_orientador_comunitario',
-        'latitude',
-        'longitude',
-        'predio_compartilhado_outra_escola',
-        'educacao_indigena',
-        'compartilha_espacos_atividades_integracao',
-        'usa_espacos_equipamentos_atividades_regulares',
-        'exame_selecao_ingresso',
     ];
 
-    protected function id(): Attribute
+    /**
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
+     * @return int
+     */
+    public function getIdAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->cod_escola,
-        );
+        return $this->cod_escola;
     }
 
-    protected function name(): Attribute
+    /**
+     * @return string
+     */
+    public function getNameAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->organization?->fantasia,
-        );
+        return $this->person->nome;
     }
 
     /**
@@ -109,25 +85,15 @@ class LegacySchool extends Model
      *
      * @return BelongsTo
      */
-    public function institution(): BelongsTo
+    public function institution()
     {
         return $this->belongsTo(LegacyInstitution::class, 'ref_cod_instituicao');
     }
 
     /**
-     * Anos letivos
-     *
-     * @return HasMany
-     */
-    public function academicYears(): HasMany
-    {
-        return $this->hasMany(LegacySchoolAcademicYear::class, 'ref_cod_escola');
-    }
-
-    /**
      * @return BelongsTo
      */
-    public function person(): BelongsTo
+    public function person()
     {
         return $this->belongsTo(LegacyPerson::class, 'ref_idpes');
     }
@@ -135,7 +101,7 @@ class LegacySchool extends Model
     /**
      * @return BelongsToMany
      */
-    public function courses(): BelongsToMany
+    public function courses()
     {
         return $this->belongsToMany(
             LegacyCourse::class,
@@ -148,7 +114,7 @@ class LegacySchool extends Model
     /**
      * @return BelongsTo
      */
-    public function organization(): BelongsTo
+    public function organization()
     {
         return $this->belongsTo(LegacyOrganization::class, 'ref_idpes');
     }
@@ -156,7 +122,7 @@ class LegacySchool extends Model
     /**
      * @return HasOne
      */
-    public function inep(): HasOne
+    public function inep()
     {
         return $this->hasOne(SchoolInep::class, 'cod_escola', 'cod_escola');
     }
@@ -164,10 +130,10 @@ class LegacySchool extends Model
     /**
      * @return BelongsToMany
      */
-    public function grades(): BelongsToMany
+    public function grades()
     {
         return $this->belongsToMany(
-            LegacyGrade::class,
+            LegacyLevel::class,
             'pmieducar.escola_serie',
             'ref_cod_escola',
             'ref_cod_serie'
@@ -177,7 +143,7 @@ class LegacySchool extends Model
     /**
      * @return HasMany
      */
-    public function schoolClasses(): HasMany
+    public function schoolClasses()
     {
         return $this->hasMany(LegacySchoolClass::class, 'ref_ref_cod_escola');
     }
@@ -185,32 +151,18 @@ class LegacySchool extends Model
     /**
      * @return HasMany
      */
-    public function schoolUsers(): HasMany
+    public function schoolManagers()
     {
-        return $this->hasMany(LegacyUserSchool::class, 'ref_cod_escola', 'cod_escola');
+        return $this->hasMany('App\\Models\\SchoolManager', 'school_id');
     }
 
-    /**
-     * @return HasMany
-     */
-    public function schoolManagers(): HasMany
+    public function stages()
     {
-        return $this->hasMany(SchoolManager::class, 'school_id');
+        return $this->hasMany(LegacySchoolStage::class, 'ref_ref_cod_escola');
     }
 
-    public function stages(): HasMany
+    public function scopeActive(Builder $builder)
     {
-        return $this->hasMany(LegacyAcademicYearStage::class, 'ref_ref_cod_escola');
-    }
-
-    public function address(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Place::class,
-            'person_has_place',
-            'person_id',
-            'place_id',
-            'ref_idpes',
-        );
+        return $builder->where('escola.ativo', 1);
     }
 }

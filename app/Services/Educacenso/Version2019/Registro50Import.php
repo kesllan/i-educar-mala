@@ -15,7 +15,6 @@ use App\Models\LegacySchoolClassTeacher;
 use App\Models\LegacySchoolClassTeacherDiscipline;
 use App\Models\SchoolClassInep;
 use App\Services\Educacenso\RegistroImportInterface;
-use App\Services\Educacenso\Version2019\Models\Registro50Model;
 use App\User;
 
 class Registro50Import implements RegistroImportInterface
@@ -82,7 +81,7 @@ class Registro50Import implements RegistroImportInterface
      */
     public static function getModel($arrayColumns)
     {
-        $registro = new Registro50Model();
+        $registro = new Registro50();
         $registro->hydrateModel($arrayColumns);
 
         return $registro;
@@ -91,7 +90,7 @@ class Registro50Import implements RegistroImportInterface
     /**
      * @return LegacySchoolClass
      */
-    protected function getSchoolClass(): ?LegacySchoolClass
+    private function getSchoolClass(): ?LegacySchoolClass
     {
         if (empty($this->model->inepTurma)) {
             return null;
@@ -103,7 +102,7 @@ class Registro50Import implements RegistroImportInterface
     /**
      * @return Employee|null
      */
-    protected function getEmployee(): ?Employee
+    private function getEmployee(): ?Employee
     {
         $inepNumber = $this->model->inepDocente;
         if (!$inepNumber) {

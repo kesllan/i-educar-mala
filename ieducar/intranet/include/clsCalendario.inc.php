@@ -151,8 +151,23 @@ class clsCalendario
      */
     public function diaDescricao($arr_dias, $array_mensagem_dias)
     {
-        foreach ($arr_dias as $key => $dia) {
-            $this->array_div_flutuante_dias[$key] = $array_mensagem_dias[$key];
+        if (is_array($arr_dias)) {
+            foreach ($arr_dias as $key => $dia) {
+                $this->array_div_flutuante_dias[$key] = $array_mensagem_dias[$key];
+            }
+        }
+    }
+
+    /**
+     * @param array $arr_dias
+     * @param array $array_onclick_dias
+     */
+    public function diaOnClick($arr_dias, $array_onclick_dias)
+    {
+        if (is_array($arr_dias)) {
+            foreach ($arr_dias as $key => $dia) {
+                $this->array_onclick_dias[$dia][] = $array_onclick_dias[$key];
+            }
         }
     }
 
@@ -162,10 +177,12 @@ class clsCalendario
      */
     public function adicionarIconeDias($arr_dias, $id_icone)
     {
-        foreach ($arr_dias as $dia) {
-            if (array_key_exists($id_icone, $this->array_icone)) {
-                $this->array_icone_dias[$dia] = $id_icone;
-                $this->array_icone[$id_icone]['utilizado'] = true;
+        if (is_array($arr_dias)) {
+            foreach ($arr_dias as $key => $dia) {
+                if (key_exists($id_icone, $this->array_icone)) {
+                    $this->array_icone_dias[$dia] = $id_icone;
+                    $this->array_icone[$id_icone]['utilizado'] = true;
+                }
             }
         }
     }
@@ -261,6 +278,9 @@ class clsCalendario
         $mixVariaveisMantidas,
         array $formValues = []
     ) {
+        $array_color = $this->array_cor;
+        $array_legenda = $this->array_legenda;
+
         if (
             isset($mixVariaveisMantidas["{$nome}_mes"]) &&
             is_numeric($mixVariaveisMantidas["{$nome}_mes"])
@@ -549,8 +569,6 @@ class clsCalendario
             }
         }
 
-        $mensagens = '';
-
         while ($diaCorrente <= $NumeroDiasMes) {
             // Seventh column (Saturday) reached. Start a new row.
             if ($DiaSemana == 7) {
@@ -694,6 +712,7 @@ class clsCalendario
             foreach ($this->array_icone as $key => $legenda) {
                 if (!empty($legenda['utilizado'])) {
                     $style = sprintf('style="background-color: %s;"', $this->array_cor[$key]);
+                    $icone = '';
 
                     $icone = '<i class="fa fa-pencil-square-o" aria-hidden="true"></i>';
 
@@ -721,7 +740,11 @@ class clsCalendario
         $calendario .= '</td></tr>';
         $calendario .= '</table></div>';
 
-        return $calendario . $mensagens;
+        if (isset($mensagens)) {
+            $calendario .= $mensagens;
+        }
+
+        return $calendario;
     }
 
     /**

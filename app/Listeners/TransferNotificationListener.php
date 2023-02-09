@@ -40,7 +40,7 @@ class TransferNotificationListener
             'O(a) aluno(a) %s, %s, %s, %s, %s foi transferido(a) da rede.',
             $registration->student->person->name,
             $registration->school->name,
-            $registration->grade->name,
+            $registration->level->name,
             $registration->lastEnrollment->schoolClass->name,
             $registration->ano
         );

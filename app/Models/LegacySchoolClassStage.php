@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Support\Database\DateSerializer;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LegacySchoolClassStage extends Model
 {
@@ -44,14 +43,4 @@ class LegacySchoolClassStage extends Model
      * @var bool
      */
     public $timestamps = false;
-
-    public function stageType(): BelongsTo
-    {
-        return $this->belongsTo(LegacyStageType::class, 'ref_cod_modulo');
-    }
-
-    public function schoolClass(): BelongsTo
-    {
-        return $this->belongsTo(LegacySchoolClass::class, 'ref_cod_turma');
-    }
 }

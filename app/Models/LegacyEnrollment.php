@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Casts\LegacyArray;
 use App\Support\Database\DateSerializer;
+use App\User;
 use DateTime;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -15,18 +15,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int                $id
  * @property int                $registration_id
  * @property int                $school_class_id
- * @property int                $etapa_educacenso
  * @property string             $studentName
  * @property DateTime           $date
  * @property LegacyRegistration $registration
  * @property LegacySchoolClass  $schoolClass
  */
-class LegacyEnrollment extends LegacyModel
+class LegacyEnrollment extends Model
 {
     use DateSerializer;
-
-    public const CREATED_AT = 'data_cadastro';
-    public const UPDATED_AT = 'updated_at';
 
     /**
      * @var string
@@ -46,6 +42,7 @@ class LegacyEnrollment extends LegacyModel
         'ref_cod_turma',
         'sequencial',
         'ref_usuario_cad',
+        'data_cadastro',
         'data_enturmacao',
         'sequencial_fechamento',
         'remanejado_mesma_turma',
@@ -53,22 +50,20 @@ class LegacyEnrollment extends LegacyModel
         'tipo_itinerario',
         'composicao_itinerario',
         'curso_itinerario',
-        'itinerario_concomitante',
-        'etapa_educacenso'
-    ];
-
-    protected $casts = [
-        'tipo_itinerario' => LegacyArray::class,
-        'composicao_itinerario' => LegacyArray::class,
+        'itinerario_concomitante'
     ];
 
     /**
      * @var array
      */
     protected $dates = [
-        'data_enturmacao',
-        'data_exclusao'
+        'data_enturmacao', 'data_exclusao'
     ];
+
+    /**
+     * @var bool
+     */
+    public $timestamps = false;
 
     /**
      * @param Builder $query
@@ -80,39 +75,44 @@ class LegacyEnrollment extends LegacyModel
         return $query->where('ativo', true);
     }
 
-    protected function date(): Attribute
+    /**
+     * @return DateTime
+     */
+    public function getDateAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->data_enturmacao,
-        );
+        return $this->data_enturmacao;
     }
 
-    protected function dateDeparted(): Attribute
+    /**
+     * @return DateTime
+     */
+    public function getDateDepartedAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->data_exclusao,
-        );
+        return $this->data_exclusao;
     }
 
-    protected function schoolClassId(): Attribute
+    /**
+     * @return int
+     */
+    public function getSchoolClassIdAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->ref_cod_turma,
-        );
+        return $this->ref_cod_turma;
     }
 
-    protected function registrationId(): Attribute
+    /**
+     * @return int
+     */
+    public function getRegistrationIdAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->ref_cod_matricula,
-        );
+        return $this->ref_cod_matricula;
     }
 
-    protected function studentName(): Attribute
+    /**
+     * @return string
+     */
+    public function getStudentNameAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->registration->student->person->nome ?? null,
-        );
+        return $this->registration->student->person->nome;
     }
 
     /**
@@ -154,7 +154,7 @@ class LegacyEnrollment extends LegacyModel
      */
     public function createdBy()
     {
-        return $this->belongsTo(LegacyUser::class, 'ref_usuario_cad');
+        return $this->belongsTo(User::class, 'ref_usuario_cad');
     }
 
     /**
@@ -164,7 +164,7 @@ class LegacyEnrollment extends LegacyModel
      */
     public function updatedBy()
     {
-        return $this->belongsTo(LegacyUser::class, 'ref_usuario_exc');
+        return $this->belongsTo(User::class, 'ref_usuario_exc');
     }
 
     public function getStudentId()

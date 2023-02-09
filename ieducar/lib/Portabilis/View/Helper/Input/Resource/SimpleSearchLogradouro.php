@@ -20,9 +20,10 @@ class Portabilis_View_Helper_Input_Resource_SimpleSearchLogradouro extends Porta
     {
         if ($id) {
             $sql = '
-                select nome,
-                \'\'::character varying tipo_logradouro
+                select nome, descricao as tipo_logradouro
                 from public.logradouro l
+                left join urbano.tipo_logradouro tl
+                on (l.idtlog = tl.idtlog)
                 where idlog = $1
             ';
 
@@ -40,7 +41,7 @@ class Portabilis_View_Helper_Input_Resource_SimpleSearchLogradouro extends Porta
 
     protected function loadAssets()
     {
-        $jsFile = '/vendor/legacy/Portabilis/Assets/Javascripts/Frontend/Inputs/Resource/SimpleSearchLogradouro.js';
+        $jsFile = '/modules/Portabilis/Assets/Javascripts/Frontend/Inputs/Resource/SimpleSearchLogradouro.js';
         Portabilis_View_Helper_Application::loadJavascript($this->viewInstance, $jsFile);
     }
 }

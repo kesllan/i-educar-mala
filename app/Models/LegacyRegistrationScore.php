@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LegacyRegistrationScore extends Model
 {
@@ -33,23 +32,8 @@ class LegacyRegistrationScore extends Model
     /**
      * @return BelongsTo
      */
-    public function registration(): BelongsTo
+    public function registration()
     {
         return $this->belongsTo(LegacyRegistration::class, 'matricula_id');
-    }
-
-    public function generalAverages(): HasMany
-    {
-        return $this->hasMany(LegacyGeneralAverage::class, 'nota_aluno_id');
-    }
-
-    public function disciplineScoreAverages(): HasMany
-    {
-        return $this->hasMany(LegacyDisciplineScoreAverage::class, 'nota_aluno_id');
-    }
-
-    public function disciplineScores(): HasMany
-    {
-        return $this->hasMany(LegacyDisciplineScore::class, 'nota_aluno_id');
     }
 }

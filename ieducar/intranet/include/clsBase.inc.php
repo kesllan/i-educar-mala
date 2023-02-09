@@ -121,20 +121,11 @@ class clsBase
             ->where('process', $this->processoAp)
             ->first();
 
-        $ancestors = $topmenu === null ? [] : Menu::getMenuAncestors($topmenu);
-
         if ($topmenu) {
-            View::share([
-                'mainmenu'=> $topmenu->root()->getKey(),
-                'currentMenu' => $topmenu,
-                'menuPaths' => $ancestors
-            ]);
+            View::share('mainmenu', $topmenu->root()->getKey());
         }
 
-        View::share([
-            'menu' => $menu,
-            'root' => $topmenu?->root()->getKey()
-        ]);
+        View::share('menu', $menu);
         View::share('title', $this->getPageTitle());
 
         if ($this->renderMenu) {

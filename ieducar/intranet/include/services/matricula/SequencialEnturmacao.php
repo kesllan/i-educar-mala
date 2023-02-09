@@ -77,6 +77,20 @@ class SequencialEnturmacao
         }
     }
 
+    public function ordenaSequencialExcluiMatricula()
+    {
+        $sequencialFechamento = $this->existeMatriculaTurma();
+
+        $this->subtraiSequencialPosterior($sequencialFechamento);
+
+        // FIXME
+        // A implentação anterior retornava uma variável indefinida, ver
+        // impactos ao corrigir esta implementação para retornar o sequencial
+        // correto.
+
+        return null;
+    }
+
     private function sequencialAlunoAposData()
     {
         $sql = "  SELECT MAX(sequencial_fechamento)+1 as sequencial
@@ -102,7 +116,9 @@ class SequencialEnturmacao
 
         $novoSequencial = DB::selectOne($sql)->sequencial;
 
-        return $novoSequencial ? $novoSequencial : 1;
+        $novoSequencial = $novoSequencial ? $novoSequencial : 1;
+
+        return $novoSequencial;
     }
 
     private function sequencialAlunoAntesData()
@@ -131,7 +147,9 @@ class SequencialEnturmacao
 
         $novoSequencial = DB::selectOne($sql)->sequencial;
 
-        return $novoSequencial ? $novoSequencial : 1;
+        $novoSequencial = $novoSequencial ? $novoSequencial : 1;
+
+        return $novoSequencial;
     }
 
     private function sequencialAlunoDependencia()

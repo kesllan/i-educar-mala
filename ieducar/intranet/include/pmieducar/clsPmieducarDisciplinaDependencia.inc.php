@@ -19,7 +19,7 @@ class clsPmieducarDisciplinaDependencia extends Model
         $observacao = null,
         $cod_disciplina_dependencia = null
     ) {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = $this->_schema . 'disciplina_dependencia';
 
@@ -130,7 +130,6 @@ class clsPmieducarDisciplinaDependencia extends Model
             is_numeric($this->ref_cod_escola) && is_numeric($this->ref_cod_disciplina)
         ) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_string($this->observacao)) {
@@ -151,7 +150,7 @@ class clsPmieducarDisciplinaDependencia extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $int_ref_cod_matricula = null,
@@ -223,7 +222,7 @@ class clsPmieducarDisciplinaDependencia extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -243,7 +242,7 @@ class clsPmieducarDisciplinaDependencia extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

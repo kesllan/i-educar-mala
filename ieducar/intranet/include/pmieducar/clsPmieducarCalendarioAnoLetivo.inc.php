@@ -15,7 +15,7 @@ class clsPmieducarCalendarioAnoLetivo extends Model
 
     public function __construct($cod_calendario_ano_letivo = null, $ref_cod_escola = null, $ref_usuario_exc = null, $ref_usuario_cad = null, $ano = null, $data_cadastra = null, $data_exclusao = null, $ativo = null/*, $inicio_ano_letivo = null, $termino_ano_letivo = null*/)
     {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = "{$this->_schema}calendario_ano_letivo";
 
@@ -101,7 +101,6 @@ class clsPmieducarCalendarioAnoLetivo extends Model
     {
         if (is_numeric($this->cod_calendario_ano_letivo) && is_numeric($this->ref_usuario_exc)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_cod_escola)) {
@@ -144,7 +143,7 @@ class clsPmieducarCalendarioAnoLetivo extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      */
     public function lista($int_cod_calendario_ano_letivo = null, $int_ref_cod_escola = null, $int_ref_usuario_exc = null, $int_ref_usuario_cad = null, $int_ano = null, $date_data_cadastra_ini = null, $date_data_cadastra_fim = null, $date_data_exclusao_ini = null, $date_data_exclusao_fim = null, $int_ativo = null, /*$date_inicio_ano_letivo_ini = null, $date_inicio_ano_letivo_fim = null, $date_termino_ano_letivo_ini = null, $date_termino_ano_letivo_fim = null ,*/$max_ano = null, $int_ref_cod_instituicao = null)
     {
@@ -239,7 +238,7 @@ class clsPmieducarCalendarioAnoLetivo extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -257,7 +256,7 @@ class clsPmieducarCalendarioAnoLetivo extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

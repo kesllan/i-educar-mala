@@ -14,7 +14,7 @@ class clsPmieducarSequenciaSerie extends Model
 
     public function __construct($ref_serie_origem = null, $ref_serie_destino = null, $ref_usuario_exc = null, $ref_usuario_cad = null, $data_cadastro = null, $data_exclusao = null, $ativo = null)
     {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = "{$this->_schema}sequencia_serie";
 
@@ -97,7 +97,6 @@ class clsPmieducarSequenciaSerie extends Model
     {
         if (is_numeric($this->ref_serie_origem) && is_numeric($this->ref_serie_destino) && is_numeric($this->ref_usuario_exc)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_usuario_exc)) {
@@ -138,7 +137,6 @@ class clsPmieducarSequenciaSerie extends Model
     {
         if (is_numeric($this->ref_serie_origem) && is_numeric($this->ref_serie_destino) && is_numeric($this->ref_usuario_exc)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_serie_origem)) {
@@ -181,7 +179,7 @@ class clsPmieducarSequenciaSerie extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      */
     public function lista($int_ref_serie_origem = null, $int_ref_serie_destino = null, $int_ref_usuario_exc = null, $int_ref_usuario_cad = null, $date_data_cadastro_ini = null, $date_data_cadastro_fim = null, $date_data_exclusao_ini = null, $date_data_exclusao_fim = null, $int_ativo = null, $int_ref_curso_origem = null, $int_ref_curso_destino = null, $int_ref_cod_instituicao = null)
     {
@@ -275,7 +273,7 @@ class clsPmieducarSequenciaSerie extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -293,7 +291,7 @@ class clsPmieducarSequenciaSerie extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

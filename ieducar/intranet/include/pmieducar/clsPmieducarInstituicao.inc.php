@@ -85,7 +85,7 @@ class clsPmieducarInstituicao extends Model
         $ordenar_alunos_sequencial_enturmacao = null,
         $obrigar_telefone_pessoa = null
     ) {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = "{$this->_schema}instituicao";
         $this->_campos_lista = $this->_todos_campos = '
@@ -691,7 +691,6 @@ class clsPmieducarInstituicao extends Model
     {
         if (is_numeric($this->cod_instituicao)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_usuario_exc)) {
@@ -1072,7 +1071,7 @@ class clsPmieducarInstituicao extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $int_cod_instituicao = null,
@@ -1219,7 +1218,7 @@ class clsPmieducarInstituicao extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -1237,7 +1236,7 @@ class clsPmieducarInstituicao extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

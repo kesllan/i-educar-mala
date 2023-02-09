@@ -12,7 +12,7 @@ class clsPmieducarServidorCurso extends Model
 
     public function __construct($cod_servidor_curso = null, $ref_cod_formacao = null, $data_conclusao = null, $data_registro = null, $diplomas_registros = null)
     {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = "{$this->_schema}servidor_curso";
 
@@ -87,7 +87,6 @@ class clsPmieducarServidorCurso extends Model
     {
         if (is_numeric($this->cod_servidor_curso)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_cod_formacao)) {
@@ -120,7 +119,7 @@ class clsPmieducarServidorCurso extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      */
     public function lista($int_cod_servidor_curso = null, $int_ref_cod_formacao = null, $date_data_conclusao_ini = null, $date_data_conclusao_fim = null, $date_data_registro_ini = null, $date_data_registro_fim = null, $str_diplomas_registros = null)
     {
@@ -191,7 +190,7 @@ class clsPmieducarServidorCurso extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -215,7 +214,7 @@ class clsPmieducarServidorCurso extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {
@@ -237,6 +236,9 @@ class clsPmieducarServidorCurso extends Model
      */
     public function excluir()
     {
+        if (is_numeric($this->cod_servidor_curso)) {
+        }
+
         return false;
     }
 }

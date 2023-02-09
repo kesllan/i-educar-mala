@@ -24,7 +24,7 @@ class clsPmieducarSerieVaga extends Model
         $turno = null,
         $vagas = null
     ) {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = $this->_schema . 'serie_vaga';
 
@@ -138,7 +138,6 @@ class clsPmieducarSerieVaga extends Model
     {
         if (is_numeric($this->cod_serie_vaga) && is_numeric($this->vagas)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_string($this->vagas)) {
@@ -159,7 +158,7 @@ class clsPmieducarSerieVaga extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $ano = null,
@@ -237,7 +236,7 @@ class clsPmieducarSerieVaga extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -255,7 +254,7 @@ class clsPmieducarSerieVaga extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

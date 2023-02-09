@@ -69,11 +69,11 @@ class clsOcupacao
     /**
      * Exibe uma lista baseada nos parametros de filtragem passados
      *
-     * @return array|false
+     * @return Array
      */
     public function lista($int_idocup = false, $str_descricao = false, $str_ordenacao = 'descricao', $int_limite_ini = 0, $int_limite_qtd = 20)
     {
-        $where = '';
+        // verificacoes de filtros a serem usados
         $whereAnd = 'WHERE ';
         if (is_numeric($int_idocup)) {
             $where .= "{$whereAnd}idocup = '$int_idocup'";
@@ -113,7 +113,7 @@ class clsOcupacao
     /**
      * Retorna um array com os detalhes do objeto
      *
-     * @return array|false
+     * @return Array
      */
     public function detalhe()
     {
@@ -121,7 +121,9 @@ class clsOcupacao
             $db = new clsBanco();
             $db->Consulta("SELECT idocup, descricao FROM {$this->schema}.{$this->tabela} WHERE idocup = {$this->idocup}");
             if ($db->ProximoRegistro()) {
-                return $db->Tupla();
+                $tupla = $db->Tupla();
+
+                return $tupla;
             }
         }
 

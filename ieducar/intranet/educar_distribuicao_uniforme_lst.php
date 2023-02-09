@@ -1,13 +1,34 @@
 <?php
 
-use App\Models\LegacyStudent;
-use App\Models\UniformDistribution;
-
 return new class extends clsListagem {
+    /**
+     * Referencia pega da session para o idpes do usuario atual
+     *
+     * @var int
+     */
     public $pessoa_logada;
+
+    /**
+     * Titulo no topo da pagina
+     *
+     * @var int
+     */
     public $titulo;
+
+    /**
+     * Quantidade de registros a ser apresentada em cada pagina
+     *
+     * @var int
+     */
     public $limite;
+
+    /**
+     * Inicio dos registros a serem exibidos (limit)
+     *
+     * @var int
+     */
     public $offset;
+
     public $cod_distribuicao_uniforme;
     public $ref_cod_aluno;
     public $ano;
@@ -21,67 +42,72 @@ return new class extends clsListagem {
             $this->$var = $val;
         }
 
-        $this->campoOculto(nome: 'ref_cod_aluno', valor: $this->ref_cod_aluno);
+        $this->campoOculto('ref_cod_aluno', $this->ref_cod_aluno);
 
         if (!$this->ref_cod_aluno) {
-            $this->simpleRedirect(url: 'educar_aluno_lst.php');
+            $this->simpleRedirect('educar_aluno_lst.php');
         }
 
-        $this->addCabecalhos(coluna: [ 'Ano', 'Kit completo', 'Tipo', 'Data da Distribuição' ]);
+        $this->addCabecalhos([ 'Ano', 'Kit completo', 'Data da distribução']);
 
         $obj_permissao = new clsPermissoes();
-        $obj_permissao->nivel_acesso(int_idpes_usuario: $this->pessoa_logada);
+        $nivel_usuario = $obj_permissao->nivel_acesso($this->pessoa_logada);
 
-        $student = LegacyStudent::find(id: $this->ref_cod_aluno);
-        $nm_aluno = mb_strtoupper(string: $student->name);
+        $obj_aluno = new clsPmieducarAluno();
+        $lst_aluno = $obj_aluno->lista($this->ref_cod_aluno, null, null, null, null, null, null, null, null, null, 1);
+        if (is_array($lst_aluno)) {
+            $det_aluno = array_shift($lst_aluno);
+            $nm_aluno = $det_aluno['nome_aluno'];
+        }
 
         if ($nm_aluno) {
-            $this->campoRotulo(nome: 'nm_aluno', campo: 'Aluno', valor: "{$nm_aluno}");
+            $this->campoRotulo('nm_aluno', 'Aluno', "{$nm_aluno}");
         }
 
-        $this->campoNumero(nome: 'ano', campo: 'Ano', valor: $this->ano, tamanhovisivel: 4, tamanhomaximo: 4, obrigatorio: false);
+        $this->campoNumero('ano', 'Ano', $this->ano, 4, 4, false);
 
-        $query = UniformDistribution::orderBy('year', 'ASC');
+        // Paginador
+        $this->limite = 20;
+        $this->offset = ($_GET["pagina_{$this->nome}"]) ? $_GET["pagina_{$this->nome}"]*$this->limite-$this->limite: 0;
 
-        if (request(key: 'ref_cod_aluno')) {
-            $query->where('student_id', request(key: 'ref_cod_aluno'));
-        }
-        if (request(key: 'ano')) {
-            $query->where('year', request(key: 'ano'));
-        }
+        $obj = new clsPmieducarDistribuicaoUniforme();
+        $obj->setOrderby('ano ASC');
+        $obj->setLimite($this->limite, $this->offset);
 
-        $result = $query->paginate(20, pageName: 'pagina_formulario');
+        $lista = $obj->lista(
+            $this->ref_cod_aluno,
+            $this->ano
+        );
 
-        $lista = $result->items();
-        $total = $result->total();
+        $total = $obj->_total;
 
         // monta a lista
-        if (is_array(value: $lista) && count(value: $lista)) {
-            foreach ($lista as $uniformDistribution) {
-                $complete_kit = $uniformDistribution->complete_kit ? 'SIM' : 'NÃO';
+        if (is_array($lista) && count($lista)) {
+            foreach ($lista as $registro) {
+                $registro['kit_completo'] = dbBool($registro['kit_completo']) ? 'Sim' : 'Não';
+                $data = Portabilis_Date_Utils::pgSQLToBr($registro['data']);
                 $lista_busca = [
-                    "<a href=\"educar_distribuicao_uniforme_det.php?ref_cod_aluno={$uniformDistribution->student_id}&cod_distribuicao_uniforme={$uniformDistribution->id}\">{$uniformDistribution->year}</a>",
-                    "<a href=\"educar_distribuicao_uniforme_det.php?ref_cod_aluno={$uniformDistribution->student_id}&cod_distribuicao_uniforme={$uniformDistribution->id}\">{$complete_kit}</a>",
-                    "<a href=\"educar_distribuicao_uniforme_det.php?ref_cod_aluno={$uniformDistribution->student_id}&cod_distribuicao_uniforme={$uniformDistribution->id}\">{$uniformDistribution->type}</a>",
-                    "<a href=\"educar_distribuicao_uniforme_det.php?ref_cod_aluno={$uniformDistribution->student_id}&cod_distribuicao_uniforme={$uniformDistribution->id}\">{$uniformDistribution->distribution_date?->format('d/m/Y')}</a>"
+                    "<a href=\"educar_distribuicao_uniforme_det.php?ref_cod_aluno={$registro['ref_cod_aluno']}&cod_distribuicao_uniforme={$registro['cod_distribuicao_uniforme']}\">{$registro['ano']}</a>",
+                    "<a href=\"educar_distribuicao_uniforme_det.php?ref_cod_aluno={$registro['ref_cod_aluno']}&cod_distribuicao_uniforme={$registro['cod_distribuicao_uniforme']}\">{$registro['kit_completo']}</a>",
+                    "<a href=\"educar_distribuicao_uniforme_det.php?ref_cod_aluno={$registro['ref_cod_aluno']}&cod_distribuicao_uniforme={$registro['cod_distribuicao_uniforme']}\">{$data}</a>"
                 ];
 
-                $this->addLinhas(linha: $lista_busca);
+                $this->addLinhas($lista_busca);
             }
         }
-        $this->addPaginador2(strUrl: 'educar_distribuicao_uniforme_lst.php', intTotalRegistros: $total, mixVariaveisMantidas: $_GET, nome: $this->nome, intResultadosPorPagina: 20);
+        $this->addPaginador2('educar_distribuicao_uniforme_lst.php', $total, $_GET, $this->nome, $this->limite);
         $obj_permissoes = new clsPermissoes();
-        if ($obj_permissoes->permissao_cadastra(int_processo_ap: 578, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7)) {
-            $this->acao = "go(\"educar_distribuicao_uniforme_cad.php?ref_cod_aluno=".request(key: 'ref_cod_aluno')."\")";
+        if ($obj_permissoes->permissao_cadastra(578, $this->pessoa_logada, 7)) {
+            $this->acao = "go(\"educar_distribuicao_uniforme_cad.php?ref_cod_aluno={$this->ref_cod_aluno}\")";
             $this->nome_acao = 'Novo';
         }
         $this->array_botao[] = 'Voltar';
-        $this->array_botao_url[] = "educar_aluno_det.php?cod_aluno=".request(key: 'ref_cod_aluno');
+        $this->array_botao_url[] = "educar_aluno_det.php?cod_aluno={$this->ref_cod_aluno}";
 
         $this->largura = '100%';
 
-        $this->breadcrumb(currentPage: 'Distribuições de uniforme escolar', breadcrumbs: [
-            url(path: 'intranet/educar_index.php') => 'Escola',
+        $this->breadcrumb('Distribuições de uniforme escolar', [
+            url('intranet/educar_index.php') => 'Escola',
         ]);
     }
 

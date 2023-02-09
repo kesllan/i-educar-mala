@@ -41,7 +41,7 @@ $nivel_usuario = $obj_permissoes->nivel_acesso($pessoa_logada);
 
 //Se administrador
 if ($nivel_usuario == 1 || $cad_usuario) {
-    $opcoes = ['' => $get_select_name_full ? 'Selecione uma instituição': 'Selecione'];
+    $opcoes = ['' => 'Selecione'];
     $obj_instituicao = new clsPmieducarInstituicao();
     $obj_instituicao->setCamposLista('cod_instituicao, nm_instituicao');
     $obj_instituicao->setOrderby('nm_instituicao ASC');
@@ -101,37 +101,42 @@ if ($get_escola && ($nivel_usuario == 1 || $nivel_usuario == 2 || $cad_usuario))
     ]);
 }
 if ($get_curso) {
-    $opcoes_curso = ['' => $get_select_name_full ? 'Selecione um curso' : 'Selecione'];
+    $opcoes_curso = ['' => 'Selecione'];
 
     // EDITAR
     if ($this->ref_cod_escola) {
         $obj_escola_curso = new clsPmieducarEscolaCurso();
 
-        $lst_escola_curso = \App\Models\LegacyCourse::query()
-            ->active()
-            ->whereSchool($this->ref_cod_escola, $this->ano)
-            ->orderBy('nm_curso')
-            ->get([
-                'cod_curso',
-                'nm_curso',
-                'descricao'
-            ]);
+        $lst_escola_curso = $obj_escola_curso->lista($this->ref_cod_escola, null, null, null, null, null, null, null, 1);
 
-        foreach ($lst_escola_curso as $escola_curso) {
-            $opcoes_curso["{$escola_curso->id}"] = $escola_curso->name;
+        if (is_array($lst_escola_curso) && count($lst_escola_curso)) {
+            foreach ($lst_escola_curso as $escola_curso) {
+                $opcoes_curso["{$escola_curso['ref_cod_curso']}"] = $escola_curso['nm_curso'];
+            }
         }
     } elseif ($this->ref_cod_instituicao) {
-        $opcoes_curso = ['' => $get_select_name_full ? 'Selecione um curso' : 'Selecione'];
+        $opcoes_curso = ['' => 'Selecione'];
+        $obj_curso = new clsPmieducarCurso();
+        $obj_curso->setOrderby('nm_curso ASC');
 
-        $lst_escola_curso = \App\Models\LegacyCourse::query()->active()->when($sem_padrao,function ($q) {
-            $q->whereStandardCalendar(0);
-        })->whereInstitution($this->ref_cod_instituicao)->orderBy('nm_curso')->get(['cod_curso','nm_curso','descricao']);
+        if ($sem_padrao) {
+            $lista = $obj_curso->lista(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1, null, $this->ref_cod_instituicao, 0);
+        } else {
+            $lista = $obj_curso->lista(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1, null, $this->ref_cod_instituicao);
+        }
 
-        foreach ($lst_escola_curso as $escola_curso) {
-            $opcoes_curso["{$escola_curso->id}"] = $escola_curso->name;
+        if (is_array($lista) && count($lista)) {
+            foreach ($lista as $registro) {
+                $opcoes_curso["{$registro['cod_curso']}"] = "{$registro['nm_curso']}";
+            }
         }
     }
     $this->campoLista('ref_cod_curso', 'Curso', $opcoes_curso, $this->ref_cod_curso, null, null, null, null, $curso_desabilitado, $curso_obrigatorio);
+
+    if ($get_semestre) {
+        $this->campoRotulo('semestres', 'Semestre', '<div id=\'div_semestre\'>Selecione um Curso</div>');
+        $this->campoOculto('is_padrao', 1);
+    }
 }
 
 if ($get_escola_curso_serie) {
@@ -166,8 +171,7 @@ if ($get_serie) {
     $this->campoLista('ref_cod_serie', 'Série', $opcoes_serie, $this->ref_cod_serie, null, null, null, null, $serie_desabilitado, $serie_obrigatorio);
 }
 
-// TODO remover no futuro #library-package
-if ($get_biblioteca && class_exists(clsPmieducarBiblioteca::class)) {
+if ($get_biblioteca) {
     if ($ref_cod_biblioteca_ == 0 && $nivel_usuario != 1 && $nivel_usuario != 2) {
         $this->campoOculto('ref_cod_biblioteca', $this->ref_cod_biblioteca);
     } else {
@@ -213,8 +217,7 @@ if ($get_biblioteca && class_exists(clsPmieducarBiblioteca::class)) {
     }
 }
 
-// TODO remover no futuro #library-package
-if ($get_cliente_tipo && class_exists(clsPmieducarClienteTipo::class)) {
+if ($get_cliente_tipo) {
     $opcoes_cli_tpo = ['' => 'Selecione'];
     if ($this->ref_cod_biblioteca) {
         $obj_cli_tpo = new clsPmieducarClienteTipo();
@@ -311,9 +314,8 @@ function getDuploEscolaBiblioteca() {
 if ($get_curso && $sem_padrao && !$get_matricula) {
     ?>
 function getCurso() {
-    const campoCurso = document.getElementById('ref_cod_curso');
-    const campoAno = document.getElementById('ano');
-    const campoInstituicao = document.getElementById('ref_cod_instituicao').value;
+    var campoCurso = document.getElementById('ref_cod_curso');
+    var campoInstituicao = document.getElementById('ref_cod_instituicao').value;
     campoCurso.length = 1;
 
     limpaCampos(3);
@@ -321,22 +323,24 @@ function getCurso() {
         campoCurso.disabled = true;
         campoCurso.options[0].text = 'Carregando cursos';
 
-        getApiResource("/api/resource/course",atualizaLstCurso,{institution:campoInstituicao,standard_calendar:0, year_eq:campoAno});
+        var xml = new ajax(atualizaLstCurso);
+        xml.envia('educar_curso_xml.php?ins=' + campoInstituicao + '&sem=true');
     } else {
         campoCurso.options[0].text = 'Selecione';
     }
 }
 
-function atualizaLstCurso(cursos) {
+function atualizaLstCurso(xml) {
     var campoCurso = document.getElementById('ref_cod_curso');
     campoCurso.length = 1;
     campoCurso.options[0].text = 'Selecione um curso';
     campoCurso.disabled = false;
 
+    var cursos = xml.getElementsByTagName('curso');
     if (cursos.length) {
-        $j.each(cursos, function(i, item) {
-            campoCurso.options[campoCurso.options.length] = new Option(item.name,item.id,false,false);
-        });
+        for (var i = 0; i < cursos.length; i++) {
+            campoCurso.options[campoCurso.options.length] = new Option(cursos[i].firstChild.data, cursos[i].getAttribute('cod_curso'), false, false);
+        }
     } else {
         campoCurso.options[0].text = 'A instituição não possui nenhum curso';
     }
@@ -345,30 +349,33 @@ function atualizaLstCurso(cursos) {
 } elseif ($get_curso && !$get_matricula) {
         ?>
 function getCurso() {
-    const campoCurso = document.getElementById('ref_cod_curso');
-    const campoInstituicao = document.getElementById('ref_cod_instituicao').value;
+    var campoCurso = document.getElementById('ref_cod_curso');
+    var campoInstituicao = document.getElementById('ref_cod_instituicao').value;
     campoCurso.length = 1;
 
     limpaCampos(3);
     if (campoInstituicao) {
         campoCurso.disabled = true;
         campoCurso.options[0].text = 'Carregando cursos';
-        getApiResource("/api/resource/course",atualizaLstCurso,{institution:campoInstituicao});
+
+        var xml = new ajax(atualizaLstCurso);
+        xml.envia('educar_curso_xml.php?ins=' + campoInstituicao);
     } else {
         campoCurso.options[0].text = 'Selecione';
     }
 }
 
-function atualizaLstCurso(cursos) {
-    const campoCurso = document.getElementById('ref_cod_curso');
+function atualizaLstCurso(xml) {
+    var campoCurso = document.getElementById('ref_cod_curso');
     campoCurso.length = 1;
     campoCurso.options[0].text = 'Selecione um curso';
     campoCurso.disabled = false;
 
+    var cursos = xml.getElementsByTagName('curso');
     if (cursos.length) {
-        $j.each(cursos, function(i, item) {
-            campoCurso.options[campoCurso.options.length] = new Option(item.name,item.id,false,false);
-        });
+        for (var i = 0; i < cursos.length; i++) {
+            campoCurso.options[campoCurso.options.length] = new Option(cursos[i].firstChild.data, cursos[i].getAttribute('cod_curso'), false, false);
+        }
     } else {
         campoCurso.options[0].text = 'A instituição não possui nenhum curso';
     }
@@ -396,7 +403,6 @@ if ($get_curso) {
     ?>
 function getEscolaCurso() {
     var campoCurso = document.getElementById('ref_cod_curso');
-    var campoAno = document.getElementById('ano').value;
     if (document.getElementById('ref_cod_escola')) {
         var campoEscola = document.getElementById('ref_cod_escola').value;
     } else if (document.getElementById('ref_ref_cod_escola')) {
@@ -404,32 +410,33 @@ function getEscolaCurso() {
     }
     campoCurso.length = 1;
 
-    console.log(campoAno);
     limpaCampos(3);
     if (campoEscola) {
         campoCurso.disabled = true;
         campoCurso.options[0].text = 'Carregando cursos';
 
+        var xml = new ajax(atualizaLstEscolaCurso);
         <?php if ($get_cursos_nao_padrao) {?>
-        getApiResource("/api/resource/course",atualizaLstEscolaCurso,{school:campoEscola,standard_calendar:0, year_eq:campoAno});
+        xml.envia('educar_curso_xml.php?esc=' + campoEscola + '&padrao_ano_escolar=nao');
         <?php } else {?>
-        getApiResource("/api/resource/course",atualizaLstEscolaCurso,{school:campoEscola,year_eq:campoAno});
+        xml.envia('educar_curso_xml.php?esc=' + campoEscola);
         <?php } ?>
     } else {
         campoCurso.options[0].text = 'Selecione';
     }
 }
 
-function atualizaLstEscolaCurso(cursos) {
+function atualizaLstEscolaCurso(xml) {
     var campoCurso = document.getElementById('ref_cod_curso');
     campoCurso.length = 1;
     campoCurso.options[0].text = 'Selecione um curso';
     campoCurso.disabled = false;
 
+    var cursos = xml.getElementsByTagName('curso');
     if (cursos.length) {
-        $j.each(cursos, function(i, item) {
-            campoCurso.options[campoCurso.options.length] = new Option(item.name,item.id, false, false);
-        });
+        for (var i = 0; i < cursos.length; i++) {
+            campoCurso.options[campoCurso.options.length] = new Option(cursos[i].firstChild.data, cursos[i].getAttribute('cod_curso'), false, false);
+        }
     } else {
         campoCurso.options[0].text = 'A escola não possui nenhum curso';
     }
@@ -445,7 +452,7 @@ function getEscolaCursoSerie() {
     var campoCursoValue = document.getElementById('ref_cod_curso').value;
     var campoCurso = document.getElementById('ref_cod_curso');
     var campoSerie = document.getElementById('ref_ref_cod_serie');
-    var cod_aluno = <?= intval($_GET['ref_cod_aluno']) ?>;
+    var cod_aluno = <?=$_GET['ref_cod_aluno']?>;
 
     campoSerie.length = 1;
 
@@ -494,22 +501,24 @@ function getEscolaCursoSerie() {
     if (campoEscola && campoCurso) {
         campoSerie.disabled = true;
         campoSerie.options[0].text = 'Carregando séries';
-        getApiResource("/api/resource/grade",atualizaLstEscolaCursoSerie,{school:campoEscola,course:campoCurso});
+        var xml = new ajax(atualizaLstEscolaCursoSerie);
+        xml.envia('educar_escola_curso_serie_xml.php?esc=' + campoEscola + '&cur=' + campoCurso);
     } else {
         campoSerie.options[0].text = 'Selecione';
     }
 }
 
-function atualizaLstEscolaCursoSerie(series) {
-    const campoSerie = document.getElementById('ref_ref_cod_serie');
+function atualizaLstEscolaCursoSerie(xml) {
+    var campoSerie = document.getElementById('ref_ref_cod_serie');
     campoSerie.length = 1;
     campoSerie.options[0].text = 'Selecione uma série';
     campoSerie.disabled = false;
 
+    series = xml.getElementsByTagName('serie');
     if (series.length) {
-        $j.each(series, function(i, item) {
-            campoSerie.options[campoSerie.options.length] = new Option(item.name, item.id, false, false);
-        });
+        for (var i = 0; i < series.length; i++) {
+            campoSerie.options[campoSerie.options.length] = new Option(series[i].firstChild.data, series[i].getAttribute('cod_serie'), false, false);
+        }
     } else {
         campoSerie.options[0].text = 'A escola/curso não possui nenhuma série';
     }
@@ -535,26 +544,27 @@ function getSerie() {
         campoSerie.disabled = true;
         campoSerie.options[0].text = 'Carregando séries';
 
-        getApiResource("/api/resource/grade",atualizaLstSerie,{school:campoEscola,course:campoCurso});
+        var xml = new ajax(atualizaLstSerie);
+        xml.envia('educar_serie_not_escola_xml.php?esc=' + campoEscola + '&cur=' + campoCurso);
     } else {
         campoSerie.options[0].text = 'Selecione';
     }
 }
 
-function atualizaLstSerie(series) {
+function atualizaLstSerie(xml) {
 
-    const campoSerie = document.getElementById('ref_cod_serie');
+    var campoSerie = document.getElementById('ref_cod_serie');
     campoSerie.length = 1;
     campoSerie.options[0].text = 'Selecione uma série';
     campoSerie.disabled = false;
 
+    series = xml.getElementsByTagName('serie');
     if (series.length) {
-        $j.each(series, function(i, item) {
-            campoSerie.options[campoSerie.options.length] = new Option(item.name,item.id, false, false);
-        });
-
+        for (var i = 0; i < series.length; i++) {
+            campoSerie.options[campoSerie.options.length] = new Option(series[i].firstChild.data, series[i].getAttribute('cod_serie'), false, false);
+        }
     } else {
-        campoSerie.options[0].text = 'O curso não possui nenhuma série ou todas as séries já estão associadas a essa escola';
+        campoSerie.options[0].text = 'O curso não possui nenhuma série ou todas as séries já estã associadas a essa escola';
     }
 }
 <?php
@@ -573,7 +583,8 @@ function getSerie() {
         campoSerie.disabled = true;
         campoSerie.options[0].text = 'Carregando séries';
 
-        getApiResource("/api/resource/grade",atualizaLstEscolaCurso,{course:campoCurso});
+        var xml = new ajax(atualizaLstSerie);
+        xml.envia('educar_serie_xml.php?cur=' + campoCurso);
     } else {
         campoSerie.options[0].text = 'Selecione';
     }
@@ -718,7 +729,8 @@ function getTurma() {
         campoTurma.disabled = true;
         campoTurma.options[0].text = 'Carregando turmas';
 
-        getApiResource("/api/resource/school-class",atualizaLstTurma,{school:campoEscola,grade:campoSerie});
+        var xml = new ajax(atualizaLstTurma);
+        xml.envia('educar_turma_xml.php?esc=' + campoEscola + '&ser=' + campoSerie);
     } else {
         campoTurma.options[0].text = 'Selecione';
     }
@@ -727,16 +739,17 @@ function getTurma() {
 var after_getTurma = function () {
 };
 
-function atualizaLstTurma(turmas) {
-    const campoTurma = document.getElementById('ref_cod_turma');
+function atualizaLstTurma(xml) {
+    var campoTurma = document.getElementById('ref_cod_turma');
     campoTurma.length = 1;
     campoTurma.options[0].text = 'Selecione uma turma';
     campoTurma.disabled = false;
 
+    var turmas = xml.getElementsByTagName('turma');
     if (turmas.length) {
-        $j.each(turmas, function(i, item) {
-            campoTurma.options[campoTurma.options.length] = new Option(item.name,item.id, false, false);
-        });
+        for (var i = 0; i < turmas.length; i++) {
+            campoTurma.options[campoTurma.options.length] = new Option(turmas[i].firstChild.data, turmas[i].getAttribute('cod_turma'), false, false);
+        }
     } else {
         campoTurma.options[0].text = 'A série não possui nenhuma turma';
     }
@@ -790,4 +803,38 @@ function limpaCampos(nivel) {
         }
     }
 }
+
+<?php
+if ($get_semestre) {
+    ?>
+
+function verifica_curso() {
+    var ref_cod_curso = document.getElementById('ref_cod_curso').value;
+    if (ref_cod_curso != '') {
+        var pars = 'ref_cod_curso=' + ref_cod_curso;
+        new Ajax.Request('educar_matricula_cad_curso_segue_padrao.php', {
+                method: 'post',
+                parameters: pars,
+                onComplete: function (resp) {
+                    if (resp.responseText == 0) {
+                        var radios = '<input type=\'radio\' id=\'sem1\' name=\'semestre\' value=\'1\'>1º Semestre<br>' +
+                            '<input type=\'radio\' id=\'sem2\' name=\'semestre\' value=\'2\'>2º Semestre<br>';
+                        $('div_semestre').innerHTML = radios;
+                        $('is_padrao').value = 0;
+                    } else {
+                        $('div_semestre').innerHTML = 'Selecione um Curso';
+                        $('is_padrao').value = 1;
+                    }
+                },
+            },
+        );
+    } else {
+        $('div_semestre').innerHTML = 'Selecione um Curso';
+        $('is_padrao').value = 1;
+    }
+}
+
+<?php
+} ?>
+
 </script>

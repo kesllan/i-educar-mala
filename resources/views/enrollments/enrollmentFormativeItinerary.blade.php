@@ -2,7 +2,7 @@
 
 @push('styles')
     <link rel="stylesheet" type="text/css" href="{{ Asset::get('css/ieducar.css') }}" />
-    <link type='text/css' rel='stylesheet' href='{{ Asset::get("/vendor/legacy/Portabilis/Assets/Plugins/Chosen/chosen.css") }}'>
+    <link type='text/css' rel='stylesheet' href='{{ Asset::get("/modules/Portabilis/Assets/Plugins/Chosen/chosen.css") }}'>
     <style type="text/css">
         .select-default {
             padding: 10px;
@@ -32,7 +32,7 @@
                     <td>Tipo do itinerário formativo:</td>
                     <td>
                         @php
-                            $types = $enrollment->tipo_itinerario;
+                            $types = transformStringFromDBInArray($enrollment->tipo_itinerario) ?? [];
                         @endphp
                         <select name="itinerary_type" id="itinerary_type" multiple="multiple" class="select-default">
                             @foreach($itineraryType as $key => $type)
@@ -45,7 +45,7 @@
                     <td>Composição do itinerário formativo integrado:</td>
                     <td>
                         @php
-                            $compositions = $enrollment->composicao_itinerario;
+                            $compositions = transformStringFromDBInArray($enrollment->composicao_itinerario) ?? [];
                         @endphp
                         <select name="itinerary_composition" id="itinerary_composition" multiple="multiple" class="select-default">
                             @foreach($itineraryComposition as $key => $composition)
@@ -87,9 +87,7 @@
             <tr>
                 <td colspan="13" align="center">
                     <input type="button" class="btn-green btn-submit botaolistagem" value=" Salvar ">
-                    <a href="{{ route('registration.formative-itinerary.index', [$enrollment->ref_cod_matricula]) }}" >
-                        <input type="button" class="botaolistagem" value=" Cancelar ">
-                    </a>
+                    <input type="button" class="botaolistagem" onclick="javascript: go('/intranet/educar_matricula_det.php?cod_matricula={{ $enrollment->registration->id }}')" value=" Cancelar ">
                 </td>
             </tr>
         </table>
@@ -97,8 +95,8 @@
 @endsection
 
 @push('scripts')
-    <script type='text/javascript' src='{{ Asset::get('/vendor/legacy/Portabilis/Assets/Plugins/Chosen/chosen.jquery.min.js') }}'></script>
-    <script type="text/javascript" src="{{ Asset::get("/vendor/legacy/Portabilis/Assets/Javascripts/Frontend/Inputs/MultipleSearch.js") }}"></script>
+    <script type='text/javascript' src='{{ Asset::get('/modules/Portabilis/Assets/Plugins/Chosen/chosen.jquery.min.js') }}'></script>
+    <script type="text/javascript" src="{{ Asset::get("/modules/Portabilis/Assets/Javascripts/Frontend/Inputs/MultipleSearch.js") }}"></script>
     <script type="text/javascript" src="{{ Asset::get("/js/enrollment-formative-itinerary.js") }}"></script>
     <script type='text/javascript'>
 
@@ -128,11 +126,12 @@
                 };
 
                 $.ajax({
-                    type:'PUT',
-                    url:"{{ route('registration.formative-itinerary.update', [$enrollment->ref_cod_matricula, $enrollment]) }}",
+                    type:'POST',
+                    url:"{{ Asset::get('/enrollment-formative-itinerary/' . $enrollment->id) }}",
                     data: dataToSend,
                     success:function(data) {
-                        windowUtils.redirect("{{ route('registration.formative-itinerary.index', [$enrollment->ref_cod_matricula]) }}")
+                        messageUtils.success(data.message);
+                        windowUtils.redirect('/intranet/educar_matricula_det.php?cod_matricula=' + data.registration_id)
                     },
                     error:function(data) {
                         messageUtils.error(decodeURIComponent(JSON.parse(data.responseText).message));

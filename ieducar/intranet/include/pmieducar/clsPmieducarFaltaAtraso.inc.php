@@ -37,7 +37,7 @@ class clsPmieducarFaltaAtraso extends Model
         $ativo = null,
         $ref_cod_servidor_funcao = null
     ) {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = $this->_schema . 'falta_atraso';
 
@@ -204,7 +204,6 @@ class clsPmieducarFaltaAtraso extends Model
     {
         if (is_numeric($this->cod_falta_atraso) && is_numeric($this->ref_usuario_exc)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_cod_escola)) {
@@ -288,7 +287,7 @@ class clsPmieducarFaltaAtraso extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $int_cod_falta_atraso = null,
@@ -440,7 +439,7 @@ class clsPmieducarFaltaAtraso extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -458,7 +457,7 @@ class clsPmieducarFaltaAtraso extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {
@@ -492,7 +491,7 @@ class clsPmieducarFaltaAtraso extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function listaHorasEscola(
         $int_ref_cod_servidor = null,

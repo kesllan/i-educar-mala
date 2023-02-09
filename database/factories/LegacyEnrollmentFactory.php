@@ -26,8 +26,7 @@ class LegacyEnrollmentFactory extends Factory
             'ref_cod_turma' => fn () => LegacySchoolClassFactory::new()->create(),
             'sequencial' => 1,
             'ref_usuario_cad' => fn () => LegacyUserFactory::new()->unique()->make(),
-            'ref_usuario_exc' => fn () => LegacyUserFactory::new()->unique()->make(),
-            'turno_id' => 1,
+            'data_cadastro' => now(),
             'data_enturmacao' => now(),
         ];
     }

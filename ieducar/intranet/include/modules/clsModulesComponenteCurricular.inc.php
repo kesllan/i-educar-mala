@@ -2,6 +2,9 @@
 
 use iEducar\Legacy\Model;
 
+error_reporting(E_ERROR);
+ini_set('display_errors', 1);
+
 class clsModulesComponenteCurricular extends Model
 {
     public $id;
@@ -25,7 +28,7 @@ class clsModulesComponenteCurricular extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      */
     public function lista($instituicao_id = null, $nome = null, $abreviatura = null, $tipo_base = null, $area_conhecimento_id = null)
     {

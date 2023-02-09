@@ -47,28 +47,16 @@
         @forelse($unifications as $unification)
             <tr>
                 <td>
-                    <a href="{{ $show = route('student-log-unification.show', ['unification' => $unification->id, 'ref_cod_instituicao' => request('ref_cod_instituicao'), 'ref_cod_escola' => request('ref_cod_escola'), 'page' => request('page')]) }}">
-                        {{ $unification->getMainName()  }}
-                    </a>
+                    <a href="{{ route('student-log-unification.show', ['unification' => $unification->id]) }}">{{ $unification->getMainName()  }}</a>
                 </td>
                 <td>
-                    <a href="{{ $show }}">
-                        {{ implode(', ', $unification->getDuplicatesName()) }}
-                    </a>
+                    <a href="{{ route('student-log-unification.show', ['unification' => $unification->id]) }}">{{ implode(', ', $unification->getDuplicatesName()) }}</a>
                 </td>
                 <td>
-                    <a href="{{ $show }}">
-                        {{ $unification->created_at->format('d/m/Y')  }}
-                    </a>
+                    <a href="{{ route('student-log-unification.show', ['unification' => $unification->id]) }}">{{ $unification->created_at->format('d/m/Y')  }}</a>
                 </td>
                 <td>
-                    <a href="{{ $show }}">
-                        @if($unification->active)
-                            Ativa
-                        @else
-                            Inativa
-                        @endif
-                    </a>
+                    <a href="{{ route('student-log-unification.show', ['unification' => $unification->id]) }}">@if($unification->active) Ativa @else Inativa @endif</a>
                 </td>
             </tr>
         @empty
@@ -96,12 +84,12 @@
 @endsection
 
 @prepend('scripts')
-    <link type='text/css' rel='stylesheet' href='{{ Asset::get("/vendor/legacy/Portabilis/Assets/Plugins/Chosen/chosen.css") }}'>
-    <script type='text/javascript' src='{{ Asset::get('/vendor/legacy/Portabilis/Assets/Plugins/Chosen/chosen.jquery.min.js') }}'></script>
+    <link type='text/css' rel='stylesheet' href='{{ Asset::get("/modules/Portabilis/Assets/Plugins/Chosen/chosen.css") }}'>
+    <script type='text/javascript' src='{{ Asset::get('/modules/Portabilis/Assets/Plugins/Chosen/chosen.jquery.min.js') }}'></script>
     <script type="text/javascript"
-            src="{{ Asset::get("/vendor/legacy/Portabilis/Assets/Javascripts/ClientApi.js") }}"></script>
+            src="{{ Asset::get("/modules/Portabilis/Assets/Javascripts/ClientApi.js") }}"></script>
     <script type="text/javascript"
-            src="{{ Asset::get("/vendor/legacy/DynamicInput/Assets/Javascripts/DynamicInput.js") }}"></script>
+            src="{{ Asset::get("/modules/DynamicInput/Assets/Javascripts/DynamicInput.js") }}"></script>
     <script type="text/javascript"
-            src="{{ Asset::get("/vendor/legacy/DynamicInput/Assets/Javascripts/Escola.js") }}"></script>
+            src="{{ Asset::get("/modules/DynamicInput/Assets/Javascripts/Escola.js") }}"></script>
 @endprepend

@@ -74,7 +74,7 @@ class clsEstadoCivil
     /**
      * Exibe uma lista baseada nos parametros de filtragem passados
      *
-     * @return array|false
+     * @return Array
      */
     public function lista($int_ideciv = false, $str_descricao = false, $str_ordenacao = 'descricao', $int_limite_ini = 0, $int_limite_qtd = 20)
     {
@@ -119,7 +119,7 @@ class clsEstadoCivil
     /**
      * Retorna um array com os detalhes do objeto
      *
-     * @return array|false
+     * @return Array
      */
     public function detalhe()
     {
@@ -127,7 +127,9 @@ class clsEstadoCivil
             $db = new clsBanco();
             $db->Consulta("SELECT ideciv, descricao FROM {$this->schema}.{$this->tabela} WHERE ideciv = {$this->ideciv}");
             if ($db->ProximoRegistro()) {
-                return $db->Tupla();
+                $tupla = $db->Tupla();
+
+                return $tupla;
             }
         }
 

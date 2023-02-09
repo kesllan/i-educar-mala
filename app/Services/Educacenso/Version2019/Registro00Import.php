@@ -5,19 +5,20 @@ namespace App\Services\Educacenso\Version2019;
 use App\Models\City;
 use App\Models\Educacenso\Registro00;
 use App\Models\Educacenso\RegistroEducacenso;
-use App\Models\LegacyAcademicYearStage;
+use App\Models\LegacyEducationNetwork;
 use App\Models\LegacyInstitution;
 use App\Models\LegacyOrganization;
 use App\Models\LegacyPerson;
+use App\Models\LegacyPersonAddress;
 use App\Models\LegacyPhone;
 use App\Models\LegacySchool;
 use App\Models\LegacySchoolAcademicYear;
+use App\Models\LegacySchoolStage;
 use App\Models\LegacyStageType;
 use App\Models\PersonHasPlace;
 use App\Models\Place;
 use App\Models\SchoolInep;
 use App\Services\Educacenso\RegistroImportInterface;
-use App\Services\Educacenso\Version2019\Models\Registro00Model;
 use App\User;
 use DateTime;
 use iEducar\Modules\Educacenso\Model\EsferaAdministrativa;
@@ -71,18 +72,12 @@ class Registro00Import implements RegistroImportInterface
      *
      * @return LegacySchool
      */
-    protected function getOrCreateSchool()
+    private function getOrCreateSchool()
     {
-        $schoolInep = $this->getSchool();
+        $schoolInep = SchoolInep::where('cod_escola_inep', $this->model->codigoInep)->first();
 
         if ($schoolInep) {
             return $schoolInep->school;
-        }
-
-        $institution = LegacyInstitution::whereNull('orgao_regional')->first();
-        if ($institution instanceof LegacyInstitution) {
-            $institution->orgao_regional = $this->model->orgaoRegional;
-            $institution->save();
         }
 
         $person = LegacyPerson::create([
@@ -105,6 +100,8 @@ class Registro00Import implements RegistroImportInterface
             'fantasia' => $this->model->nome,
         ]);
 
+        $educationNetword = self::getOrCreateEducationNetwork($this->user);
+
         $school = LegacySchool::create([
             'situacao_funcionamento' => $this->model->situacaoFuncionamento,
             'sigla' => mb_substr($this->model->nome, 0, 5, 'UTF-8'),
@@ -112,6 +109,7 @@ class Registro00Import implements RegistroImportInterface
             'ativo' => 1,
             'ref_idpes' => $organization->getKey(),
             'ref_usuario_cad' => $this->user->id,
+            'ref_cod_escola_rede_ensino' => $educationNetword->getKey(),
             'ref_cod_instituicao' => $this->institution->id,
             'zona_localizacao' => $this->model->zonaLocalizacao,
             'localizacao_diferenciada' => $this->model->localizacaoDiferenciada,
@@ -137,14 +135,26 @@ class Registro00Import implements RegistroImportInterface
         $this->createPhones($school);
     }
 
-    protected function getSchool()
+    private function getOrCreateEducationNetwork()
     {
-        return SchoolInep::where('cod_escola_inep', $this->model->codigoInep)->first();
+        $educationNetwork = LegacyEducationNetwork::all()->first();
+
+        if ($educationNetwork) {
+            return $educationNetwork;
+        }
+
+        return LegacyEducationNetwork::create([
+            'ref_usuario_cad' => $this->user->id,
+            'nm_rede' => 'Importação Educacenso',
+            'ativo' => 1,
+            'ref_cod_instituicao' => $this->institution->id,
+            'data_cadastro' => now(),
+        ]);
     }
 
     private function createAddress($school)
     {
-        $personAddress = PersonHasPlace::where('person_id', $school->ref_idpes)->exists();
+        $personAddress = LegacyPersonAddress::where('idpes', $school->ref_idpes)->exists();
         if ($personAddress) {
             return;
         }
@@ -157,7 +167,7 @@ class Registro00Import implements RegistroImportInterface
         $place = Place::firstOrCreate([
             'city_id' => $city->getKey(),
             'address' => $this->model->logradouro,
-            'number' => (int)(is_numeric($this->model->numero) ? $this->model->numero : null),
+            'number' => (int) (is_numeric($this->model->numero) ? $this->model->numero : null),
             'complement' => $this->model->complemento,
             'neighborhood' => $this->model->bairro,
             'postal_code' => $this->model->cep,
@@ -236,7 +246,7 @@ class Registro00Import implements RegistroImportInterface
             ]);
         }
 
-        LegacyAcademicYearStage::create([
+        LegacySchoolStage::create([
             'ref_ano' => $this->year,
             'ref_ref_cod_escola' => $school->getKey(),
             'sequencial' => 1,
@@ -320,7 +330,7 @@ class Registro00Import implements RegistroImportInterface
 
     public static function getModel($arrayColumns)
     {
-        $registro = new Registro00Model();
+        $registro = new Registro00();
         $registro->hydrateModel($arrayColumns);
 
         return $registro;

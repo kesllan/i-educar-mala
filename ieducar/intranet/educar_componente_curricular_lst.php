@@ -1,10 +1,34 @@
 <?php
 
 return new class extends clsListagem {
+    /**
+     * Referencia pega da session para o idpes do usuario atual
+     *
+     * @var int
+     */
     public $pessoa_logada;
+
+    /**
+     * Titulo no topo da pagina
+     *
+     * @var int
+     */
     public $titulo;
+
+    /**
+     * Quantidade de registros a ser apresentada em cada pagina
+     *
+     * @var int
+     */
     public $limite;
+
+    /**
+     * Inicio dos registros a serem exibidos (limit)
+     *
+     * @var int
+     */
     public $offset;
+
     public $ref_cod_instituicao;
     public $nome;
     public $abreviatura;
@@ -37,12 +61,12 @@ return new class extends clsListagem {
         include('include/pmieducar/educar_campo_lista.php');
 
         // outros Filtros
-        $this->campoTexto(nome: 'nome', campo: 'Nome', valor: $this->nome, tamanhovisivel: 41, tamanhomaximo: 255);
-        $this->campoTexto(nome: 'abreviatura', campo: 'Abreviatura', valor: $this->abreviatura, tamanhovisivel: 41, tamanhomaximo: 255);
+        $this->campoTexto('nome', 'Nome', $this->nome, 41, 255, false);
+        $this->campoTexto('abreviatura', 'Abreviatura', $this->abreviatura, 41, 255, false);
 
         $tipos = ComponenteCurricular_Model_TipoBase::getInstance();
         $tipos = $tipos->getEnums();
-        $tipos = Portabilis_Array_Utils::insertIn(key: null, value: 'Selecionar', array: $tipos);
+        $tipos = Portabilis_Array_Utils::insertIn(null, 'Selecionar', $tipos);
 
         $options = [
             'label'       => 'Base Curricular',
@@ -52,7 +76,7 @@ return new class extends clsListagem {
             'required'    => false
         ];
 
-        $this->inputsHelper()->select(attrName: 'tipo_base', inputOptions: $options);
+        $this->inputsHelper()->select('tipo_base', $options);
 
         $objAreas = new AreaConhecimento_Model_AreaDataMapper();
         $objAreas = $objAreas->findAll(['id', 'nome', 'agrupar_descritores']);
@@ -65,7 +89,7 @@ return new class extends clsListagem {
             $areas[$area->id] = $area->nome;
         }
 
-        $areas = Portabilis_Array_Utils::insertIn(key: null, value: 'Selecionar', array: $areas);
+        $areas = Portabilis_Array_Utils::insertIn(null, 'Selecionar', $areas);
 
         $options = [
             'label'       => 'Área de conhecimento',
@@ -75,7 +99,7 @@ return new class extends clsListagem {
             'required'    => false
         ];
 
-        $this->inputsHelper()->select(attrName: 'area_conhecimento_id', inputOptions: $options);
+        $this->inputsHelper()->select('area_conhecimento_id', $options);
 
         // Paginador
         $this->limite = 20;
@@ -83,14 +107,14 @@ return new class extends clsListagem {
 
         $objCC = new clsModulesComponenteCurricular();
         $objCC->setOrderby('cc.nome ASC');
-        $objCC->setLimite(intLimiteQtd: $this->limite, intLimiteOffset: $this->offset);
+        $objCC->setLimite($this->limite, $this->offset);
 
         $lista = $objCC->lista(
-            instituicao_id: $this->ref_cod_instituicao,
-            nome: $this->nome,
-            abreviatura: $this->abreviatura,
-            tipo_base: $this->tipo_base,
-            area_conhecimento_id: $this->area_conhecimento_id
+            $this->ref_cod_instituicao,
+            $this->nome,
+            $this->abreviatura,
+            $this->tipo_base,
+            $this->area_conhecimento_id
         );
 
         $total = $objCC->_total;
@@ -115,15 +139,15 @@ return new class extends clsListagem {
                 $this->addLinhas($lista_busca);
             }
         }
-        $this->addPaginador2(strUrl: 'educar_componente_curricular_lst.php', intTotalRegistros: $total, mixVariaveisMantidas: $_GET, nome: $this->nome, intResultadosPorPagina: $this->limite);
+        $this->addPaginador2('educar_componente_curricular_lst.php', $total, $_GET, $this->nome, $this->limite);
 
-        if ($obj_permissoes->permissao_cadastra(int_processo_ap: 580, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 3)) {
+        if ($obj_permissoes->permissao_cadastra(580, $this->pessoa_logada, 3)) {
             $this->acao = 'go("/module/ComponenteCurricular/edit")';
             $this->nome_acao = 'Novo';
         }
         $this->largura = '100%';
 
-        $this->breadcrumb(currentPage: 'Listagem de componentes curriculares', breadcrumbs: [
+        $this->breadcrumb('Listagem de componentes curriculares', [
             url('intranet/educar_index.php') => 'Escola',
         ]);
     }

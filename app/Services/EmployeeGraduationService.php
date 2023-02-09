@@ -38,6 +38,7 @@ class EmployeeGraduationService
         $employeeGraduation->course_id = $valueObject->courseId;
         $employeeGraduation->completion_year = $valueObject->completionYear;
         $employeeGraduation->college_id = $valueObject->collegeId;
+        $employeeGraduation->discipline_id = $valueObject->disciplineId;
         $employeeGraduation->save();
     }
 }

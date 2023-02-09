@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Employee $employee
  *
  */
-class EmployeeInep extends LegacyModel
+class EmployeeInep extends Model
 {
     /**
      * @var string
@@ -23,26 +23,17 @@ class EmployeeInep extends LegacyModel
      */
     protected $primaryKey = 'cod_servidor';
 
-    protected $fillable = [
-        'cod_servidor',
-        'cod_docente_inep'
-    ];
+    protected $fillable = ['cod_servidor', 'cod_docente_inep'];
 
-    public array $legacy = [
-        'id' => 'cod_servidor',
-    ];
-
-    protected function number(): Attribute
+    public function getNumberAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->cod_docente_inep
-        );
+        return $this->cod_docente_inep;
     }
 
     /**
      * @return BelongsTo
      */
-    public function employee(): BelongsTo
+    public function employee()
     {
         return $this->belongsTo(Employee::class, 'cod_servidor', 'cod_servidor');
     }

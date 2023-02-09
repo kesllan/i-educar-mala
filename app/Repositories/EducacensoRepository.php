@@ -88,31 +88,35 @@ class EducacensoRepository
               FROM pmieducar.ano_letivo_modulo
               WHERE ano_letivo_modulo.ref_ano = :year AND ano_letivo_modulo.ref_ref_cod_escola = e.cod_escola) AS "fimAnoLetivo",
             j.fantasia AS nome,
-            a.postal_code AS cep,
-            a.city_ibge_code AS "codigoIbgeMunicipio",
+            ep.cep AS cep,
+            municipio.cod_ibge AS "codigoIbgeMunicipio",
             districts.ibge_code AS "codigoIbgeDistrito",
-            a.address AS logradouro,
-            a.number AS numero,
-            a.complement AS complemento,
-            a.neighborhood AS bairro,
-            (
-                SELECT min(fone_pessoa.ddd)
-                FROM cadastro.fone_pessoa
-                WHERE j.idpes = fone_pessoa.idpes
-            ) AS ddd,
-            (
-                SELECT min(fone_pessoa.fone)
-                FROM cadastro.fone_pessoa
-                WHERE j.idpes = fone_pessoa.idpes
-                AND fone_pessoa.tipo = 1
-            ) AS telefone,
-            (
-                SELECT min(fone_pessoa.fone)
-                FROM cadastro.fone_pessoa
-                WHERE j.idpes = fone_pessoa.idpes
-                AND fone_pessoa.tipo = 2
-            ) AS "telefoneOutro",
-            p.email AS email,
+            l.nome AS logradouro,
+            ep.numero AS numero,
+            ep.complemento AS complemento,
+            bairro.nome AS bairro,
+            (SELECT COALESCE(
+              (SELECT min(fone_pessoa.ddd)
+                    FROM cadastro.fone_pessoa
+                    WHERE j.idpes = fone_pessoa.idpes),
+              (SELECT min(ddd_telefone)
+                FROM pmieducar.escola_complemento
+                WHERE escola_complemento.ref_cod_escola = e.cod_escola))) AS ddd,
+            (SELECT COALESCE(
+              (SELECT min(fone_pessoa.fone)
+                    FROM cadastro.fone_pessoa
+                    WHERE j.idpes = fone_pessoa.idpes AND fone_pessoa.tipo = 1),
+              (SELECT min(telefone)
+                FROM pmieducar.escola_complemento
+                WHERE escola_complemento.ref_cod_escola = e.cod_escola))) AS telefone,
+            (SELECT COALESCE(
+              (SELECT min(fone_pessoa.fone)
+                    FROM cadastro.fone_pessoa
+                    WHERE j.idpes = fone_pessoa.idpes AND fone_pessoa.tipo = 2),
+              (SELECT min(fax)
+                FROM pmieducar.escola_complemento
+                WHERE escola_complemento.ref_cod_escola = e.cod_escola))) AS "telefoneOutro",
+            (SELECT COALESCE(p.email,(SELECT email FROM pmieducar.escola_complemento WHERE ref_cod_escola = e.cod_escola))) AS email,
             i.orgao_regional AS "orgaoRegional",
             e.zona_localizacao AS "zonaLocalizacao",
             e.localizacao_diferenciada AS "localizacaoDiferenciada",
@@ -187,10 +191,10 @@ class EducacensoRepository
             e.orgao_vinculado_escola AS "orgaoVinculado",
             e.esfera_administrativa AS "esferaAdministrativa",
             e.cod_escola AS "idEscola",
-            a.city_id AS "idMunicipio",
+            municipio.idmun AS "idMunicipio",
             districts.id AS "idDistrito",
             i.cod_instituicao AS "idInstituicao",
-            a.state_abbreviation AS "siglaUf",
+            uf.sigla_uf AS "siglaUf",
             (SELECT EXTRACT(YEAR FROM min(ano_letivo_modulo.data_inicio))
               FROM pmieducar.ano_letivo_modulo
               WHERE ano_letivo_modulo.ref_ano = :year AND ano_letivo_modulo.ref_ref_cod_escola = e.cod_escola) AS "anoInicioAnoLetivo",
@@ -203,11 +207,15 @@ class EducacensoRepository
             INNER JOIN cadastro.pessoa p ON (e.ref_idpes = p.idpes)
             INNER JOIN cadastro.juridica j ON (j.idpes = p.idpes)
             LEFT JOIN modules.educacenso_cod_escola ece ON (e.cod_escola = ece.cod_escola)
-            LEFT JOIN person_has_place php ON true
-                AND php.person_id = e.ref_idpes
-                AND php.type = 1
-            LEFT JOIN addresses a ON a.id = php.place_id
+            LEFT JOIN cadastro.endereco_pessoa ep ON (ep.idpes = p.idpes)
+            LEFT JOIN public.bairro ON (bairro.idbai = ep.idbai)
+            LEFT JOIN public.municipio ON (municipio.idmun = bairro.idmun)
+            LEFT JOIN public.uf ON (uf.sigla_uf = municipio.sigla_uf)
             LEFT JOIN public.districts ON (districts.id = e.iddis)
+
+            LEFT JOIN urbano.cep_logradouro_bairro clb ON (clb.idbai = ep.idbai AND clb.idlog = ep.idlog AND clb.cep = ep.cep)
+            LEFT JOIN urbano.cep_logradouro cl ON (cl.idlog = clb.idlog AND clb.cep = cl.cep)
+            LEFT JOIN public.logradouro l ON (l.idlog = cl.idlog)
             WHERE e.cod_escola = :school
 SQL;
 
@@ -431,8 +439,8 @@ SQL;
                 CASE WHEN fisica.sexo = 'M' THEN 1 ELSE 2 END AS "sexo",
                 raca.raca_educacenso AS "raca",
                 fisica.nacionalidade AS "nacionalidade",
-                CASE WHEN fisica.nacionalidade = 3 THEN countries.ibge_code ELSE 76 END AS "paisNacionalidade",
-                municipio_nascimento.ibge_code AS "municipioNascimento",
+                CASE WHEN fisica.nacionalidade = 3 THEN pais.cod_ibge ELSE 76 END AS "paisNacionalidade",
+                municipio_nascimento.cod_ibge AS "municipioNascimento",
                 CASE WHEN
                     true = (
                         SELECT true
@@ -455,8 +463,8 @@ SQL;
                 13 = ANY (deficiencias.array_deficiencias)::INTEGER AS "deficienciaAltasHabilidades",
                 25 = ANY (deficiencias.array_deficiencias)::INTEGER AS "deficienciaAutismo",
                 fisica.pais_residencia AS "paisResidencia",
-                addresses.postal_code AS "cep",
-                addresses.city_ibge_code AS "municipioResidencia",
+                endereco_pessoa.cep AS "cep",
+                municipio.cod_ibge AS "municipioResidencia",
                 fisica.zona_localizacao_censo AS "localizacaoResidencia",
                 fisica.localizacao_diferenciada AS "localizacaoDiferenciada",
                 dadosescola.nomeescola AS "nomeEscola",
@@ -472,12 +480,11 @@ SQL;
             ON fisica.idpes_mae = pessoa_mae.idpes
             LEFT JOIN cadastro.pessoa as pessoa_pai
             ON fisica.idpes_pai = pessoa_pai.idpes
-            LEFT JOIN public.cities municipio_nascimento ON municipio_nascimento.id = fisica.idmun_nascimento
-            LEFT JOIN person_has_place ON true
-                AND person_has_place.person_id = pessoa.idpes
-                AND person_has_place.type = 1
-            LEFT JOIN addresses ON addresses.id = person_has_place.place_id
-            LEFT JOIN public.countries ON countries.id = CASE WHEN fisica.nacionalidade = 3 THEN fisica.idpais_estrangeiro ELSE 76 END
+            LEFT JOIN public.municipio municipio_nascimento ON municipio_nascimento.idmun = fisica.idmun_nascimento
+            LEFT JOIN cadastro.endereco_pessoa ON endereco_pessoa.idpes = pessoa.idpes
+            LEFT JOIN public.logradouro ON logradouro.idlog = endereco_pessoa.idlog
+            LEFT JOIN public.municipio ON municipio.idmun = logradouro.idmun
+            LEFT JOIN public.pais ON pais.idpais = CASE WHEN fisica.nacionalidade = 3 THEN fisica.idpais_estrangeiro ELSE 76 END
             LEFT JOIN LATERAL (
                  SELECT educacenso_cod_escola.cod_escola_inep,
                         educacenso_cod_escola.cod_escola,
@@ -515,10 +522,10 @@ SQL;
                 servidor.cod_servidor AS "codigoPessoa",
                 escolaridade.escolaridade AS "escolaridade",
                 servidor.tipo_ensino_medio_cursado AS "tipoEnsinoMedioCursado",
-                servidor.complementacao_pedagogica AS "complementacaoPedagogica",
                 tbl_formacoes.course_id AS "formacaoCurso",
                 tbl_formacoes.completion_year AS "formacaoAnoConclusao",
                 tbl_formacoes.college_id AS "formacaoInstituicao",
+                tbl_formacoes.discipline_id AS "formacaoComponenteCurricular",
                 tbl_posgraduacoes.pos_graduate::text AS "posGraduacoes",
                 coalesce(cardinality(servidor.curso_formacao_continuada),0) as "countFormacaoContinuada",
                 (ARRAY[1] <@ servidor.curso_formacao_continuada)::INT "formacaoContinuadaCreche",
@@ -549,7 +556,7 @@ SQL;
                 SELECT ARRAY_REMOVE(ARRAY_AGG(educacenso_curso_superior.curso_id), NULL) course_id,
                        ARRAY_REMOVE(ARRAY_AGG(completion_year), NULL) completion_year,
                        ARRAY_REMOVE(ARRAY_AGG(educacenso_ies.ies_id), NULL) college_id,
-                       ARRAY_REMOVE(ARRAY_AGG(coalesce(discipline_id, 0)), NULL) discipline_id
+                       ARRAY_REMOVE(ARRAY_AGG(discipline_id), NULL) discipline_id
                  FROM employee_graduations
                  JOIN modules.educacenso_curso_superior ON educacenso_curso_superior.id = employee_graduations.course_id
                  JOIN modules.educacenso_ies ON educacenso_ies.id = employee_graduations.college_id

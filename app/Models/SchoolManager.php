@@ -11,17 +11,12 @@ class SchoolManager extends Model
     protected $fillable = [
         'employee_id',
         'school_id',
-        'role_id',
-        'access_criteria_id',
-        'access_criteria_description',
-        'link_type_id',
-        'chief'
     ];
 
     /**
      * @return BelongsTo
      */
-    public function individual(): BelongsTo
+    public function individual()
     {
         return $this->belongsTo(Individual::class, 'employee_id', 'id');
     }
@@ -29,15 +24,15 @@ class SchoolManager extends Model
     /**
      * @return BelongsTo
      */
-    public function school(): BelongsTo
+    public function school()
     {
-        return $this->belongsTo(LegacySchool::class, 'school_id', 'cod_escola');
+        return $this->belongsTo(School::class, 'school_id', 'cod_escola');
     }
 
     /**
      * @return BelongsTo
      */
-    public function employee(): BelongsTo
+    public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'cod_servidor');
     }
@@ -45,7 +40,7 @@ class SchoolManager extends Model
     /**
      * @return BelongsTo
      */
-    public function role(): BelongsTo
+    public function role()
     {
         return $this->belongsTo(ManagerRole::class, 'role_id', 'id');
     }
@@ -53,7 +48,7 @@ class SchoolManager extends Model
     /**
      * @return BelongsTo
      */
-    public function accessCriteria(): BelongsTo
+    public function accessCriteria()
     {
         return $this->belongsTo(ManagerAccessCriteria::class, 'access_criteria_id', 'id');
     }
@@ -61,7 +56,7 @@ class SchoolManager extends Model
     /**
      * @return BelongsTo
      */
-    public function linkType(): BelongsTo
+    public function linkType()
     {
         return $this->belongsTo(ManagerLinkType::class, 'link_type_id', 'id');
     }
@@ -69,7 +64,7 @@ class SchoolManager extends Model
     /**
      * @return boolean
      */
-    public function isChief(): bool
+    public function isChief()
     {
         return $this->chief;
     }
@@ -82,7 +77,7 @@ class SchoolManager extends Model
      *
      * @return Builder
      */
-    public function scopeOfSchool(Builder $query, int $schoolId): Builder
+    public function scopeOfSchool($query, $schoolId)
     {
         return $query->where('school_id', $schoolId);
     }

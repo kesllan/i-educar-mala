@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\LegacyEducationType;
-
 return new class extends clsDetalhe {
     public $titulo;
     public $cod_tipo_ensino;
@@ -19,8 +17,8 @@ return new class extends clsDetalhe {
 
         $this->cod_tipo_ensino=$_GET['cod_tipo_ensino'];
 
-        $registro = LegacyEducationType::find($this->cod_tipo_ensino)?->getAttributes();
-        if (!$registro) {
+        $tmp_obj = new clsPmieducarTipoEnsino($this->cod_tipo_ensino, null, null, null, null, null, 1);
+        if (!$registro = $tmp_obj->detalhe()) {
             $this->simpleRedirect('educar_tipo_ensino_lst.php');
         }
 

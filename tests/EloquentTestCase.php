@@ -2,16 +2,9 @@
 
 namespace Tests;
 
-use App\Models\Concerns\SoftDeletes\LegacySoftDeletes;
-use App\Models\LegacyModel;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 abstract class EloquentTestCase extends TestCase
@@ -22,15 +15,6 @@ abstract class EloquentTestCase extends TestCase
      * @var array
      */
     protected $relations = [];
-
-    protected Model $model;
-
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $this->model = $this->createNewModel();
-    }
 
     /**
      * Return the Eloquent model name to be used in tests.
@@ -82,17 +66,15 @@ abstract class EloquentTestCase extends TestCase
     /**
      * Create a new Eloquent model.
      *
-     * @return Model
-     *
      * @see Model::save()
      *
+     * @return Model
      */
     protected function createNewModel()
     {
         $model = $this->instanceNewEloquentModel();
 
         $model->fill($this->getAttributesForCreate());
-
         $model->save();
 
         return $model;
@@ -105,7 +87,9 @@ abstract class EloquentTestCase extends TestCase
      */
     public function testCreateUsingEloquent()
     {
-        $this->assertDatabaseHas($this->model->getTable(), $this->model->getAttributes());
+        $modelCreated = $this->createNewModel();
+
+        $this->assertDatabaseHas($modelCreated->getTable(), $modelCreated->toArray());
     }
 
     /**
@@ -115,43 +99,33 @@ abstract class EloquentTestCase extends TestCase
      */
     public function testUpdateUsingEloquent()
     {
-        $modelUpdated = clone $this->model;
+        $modelCreated = $this->createNewModel();
+
+        $modelUpdated = clone $modelCreated;
 
         $modelUpdated->fill($this->getAttributesForUpdate());
         $modelUpdated->save();
 
-        $this->assertDatabaseMissing($modelUpdated->getTable(), $this->model->getAttributes());
-        $this->assertDatabaseHas($modelUpdated->getTable(), $this->removeTimestamps($modelUpdated->getAttributes()));
-    }
-
-    private function removeTimestamps(array $attributes): array
-    {
-        if (array_key_exists('updated_at', $attributes)) {
-            unset($attributes['updated_at']);
-        }
-
-        return $attributes;
+        $this->assertDatabaseMissing($modelUpdated->getTable(), $modelCreated->toArray());
+        $this->assertDatabaseHas($modelUpdated->getTable(), $modelUpdated->toArray());
     }
 
     /**
      * Delete a Eloquent model.
      *
-     * @return void
-     *
      * @throws Exception
      *
+     * @return void
      */
     public function testDeleteUsingEloquent()
     {
-        $this->assertDatabaseHas($this->model->getTable(), $this->model->getAttributes());
+        $modelCreated = $this->createNewModel();
 
-        $this->model->delete();
+        $this->assertDatabaseHas($modelCreated->getTable(), $modelCreated->toArray());
 
-        if (in_array(SoftDeletes::class, class_uses($this->model), true) || in_array(LegacySoftDeletes::class, class_uses($this->model), true)) {
-            $this->assertSoftDeleted($this->model, deletedAtColumn: $this->model->getDeletedAtColumn());
-        } else {
-            $this->assertDatabaseMissing($this->model->getTable(), $this->model->getAttributes());
-        }
+        $modelCreated->delete();
+
+        $this->assertDatabaseMissing($modelCreated->getTable(), $modelCreated->toArray());
     }
 
     /**
@@ -161,12 +135,14 @@ abstract class EloquentTestCase extends TestCase
      */
     public function testFindUsingEloquent()
     {
+        $modelCreated = $this->createNewModel();
+
         $modelFound = $this->instanceNewEloquentModel()
             ->newQuery()
-            ->find($this->model->getKey());
+            ->find($modelCreated->getKey());
 
-        $created = $this->model->getAttributes();
-        $found = $modelFound->getAttributes();
+        $created = $modelCreated->toArray();
+        $found = $modelFound->toArray();
 
         $expected = array_intersect_key($created, $found);
 
@@ -180,56 +156,16 @@ abstract class EloquentTestCase extends TestCase
      */
     public function testRelationships()
     {
-        if (empty($this->relations)) {
-            $this->assertTrue(true);
-        }
-
         $factory = Factory::factoryForModel(
             $this->getEloquentModelName()
         );
 
+        $model = $factory->create();
+
         foreach ($this->relations as $relation => $class) {
-            $type = $this->model->{$relation}();
-
-            if ($type instanceof BelongsToMany) {
-                if (is_array($class)) {
-                    [$modelClass, $pivotData] = $class;
-                } else {
-                    $modelClass = $class;
-                    $pivotData = [];
-                }
-                $class = is_array($class) ? $class[0] : $class;
-                $model = $factory->hasAttached(Factory::factoryForModel($modelClass)->new(), $pivotData, $relation)->create();
-                $this->assertCount(1, $model->{$relation});
-                $this->assertInstanceOf($class, $model->{$relation}->first());
-            } elseif ($type instanceof HasMany || $type instanceof HasOne) {
-                $method = 'has' . ucfirst($relation);
-                $model = $factory->{$method}()->create();
-
-                if ($type instanceof HasMany) {
-                    $this->assertCount(1, $model->{$relation});
-                    $this->assertInstanceOf($class, $model->{$relation}->first());
-                } else {
-                    $this->assertInstanceOf($class, $model->{$relation});
-                }
-            } elseif ($type instanceof BelongsTo) {
-                $model = $factory->create();
-                $this->assertInstanceOf($class, $model->{$relation});
-            }
-        }
-    }
-
-    protected function getLegacyAttributes(): array
-    {
-        return [];
-    }
-
-    public function testHasLegacyAttributes()
-    {
-        if (!empty($this->getLegacyAttributes()) && get_parent_class($this->getEloquentModelName()) === LegacyModel::class) {
-            $this->assertEquals($this->createNewModel()->legacy, $this->getLegacyAttributes());
+            $this->assertInstanceOf($class, $model->{$relation});
         }
 
-        $this->assertTrue(true);
+        $this->assertInstanceOf($this->getEloquentModelName(), $model);
     }
 }

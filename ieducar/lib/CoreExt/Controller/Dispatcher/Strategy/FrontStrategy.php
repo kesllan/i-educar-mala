@@ -7,7 +7,7 @@ class CoreExt_Controller_Dispatcher_Strategy_FrontStrategy extends CoreExt_Contr
      *
      * @var CoreExt_Controller_Interface
      */
-    protected $_controller;
+    protected $_controller = null;
 
     /**
      * Construtor.

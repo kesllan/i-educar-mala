@@ -15,7 +15,7 @@ abstract class CoreExt_Session_Storage_Abstract implements CoreExt_Session_Stora
      *
      * @var string
      */
-    protected static $_sessionId;
+    protected static $_sessionId = null;
 
     /**
      * Opções de configuração geral da classe.
@@ -46,6 +46,7 @@ abstract class CoreExt_Session_Storage_Abstract implements CoreExt_Session_Stora
      * Método de inicialização do storage. As subclasses devem sobrescrever
      * este método para alterar o comportamento do mecanismo de session do PHP.
      *
+     * @param array $options
      *
      * @return void
      */

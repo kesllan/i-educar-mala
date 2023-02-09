@@ -16,14 +16,10 @@ class PersonHasPlace extends Pivot
         'type',
     ];
 
-    protected $relatedKey = 'person_id';
-    protected $foreignKey = 'place_id';
-    public $incrementing = true;
-
     /**
      * @return BelongsTo
      */
-    public function place(): BelongsTo
+    public function place()
     {
         return $this->belongsTo(Place::class);
     }
@@ -31,7 +27,7 @@ class PersonHasPlace extends Pivot
     /**
      * @return BelongsTo
      */
-    public function person(): BelongsTo
+    public function person()
     {
         return $this->belongsTo(Person::class);
     }

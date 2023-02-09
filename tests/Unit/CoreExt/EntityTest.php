@@ -400,7 +400,7 @@ class CoreExt_EntityTest extends UnitBaseTest
         $filhoMapper->expects($this->once())
             ->method('find')
             ->with(1)
-            ->willReturn($child);
+            ->will($this->returnValue($child));
 
         $parent->setReferenceClass('filho', $filhoMapper);
 

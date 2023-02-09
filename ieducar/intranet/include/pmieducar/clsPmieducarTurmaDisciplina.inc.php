@@ -11,7 +11,7 @@ class clsPmieducarTurmaDisciplina extends Model
 
     public function __construct($ref_cod_turma = null, $ref_cod_disciplina = null, $ref_cod_escola = null, $ref_cod_serie = null)
     {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = "{$this->_schema}turma_disciplina";
 
@@ -94,7 +94,7 @@ class clsPmieducarTurmaDisciplina extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      */
     public function lista($int_ref_cod_turma = null, $int_ref_cod_disciplina = null, $int_ref_cod_escola = null, $int_ref_cod_serie = null, $str_disciplina_not_in = null)
     {
@@ -158,7 +158,7 @@ class clsPmieducarTurmaDisciplina extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -176,7 +176,7 @@ class clsPmieducarTurmaDisciplina extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {
@@ -198,6 +198,9 @@ class clsPmieducarTurmaDisciplina extends Model
      */
     public function excluir()
     {
+        if (is_numeric($this->ref_cod_turma) && is_numeric($this->ref_cod_disciplina) && is_numeric($this->ref_cod_escola) && is_numeric($this->ref_cod_serie)) {
+        }
+
         return false;
     }
 
@@ -270,14 +273,23 @@ class clsPmieducarTurmaDisciplina extends Model
     {
         if (is_numeric($disciplina) && is_numeric($this->ref_cod_turma) && is_numeric($this->ref_cod_serie) && is_numeric($this->ref_cod_escola)) {
             $db = new clsBanco();
-
-            return $db->CampoUnico("SELECT 1
+            $resultado = $db->CampoUnico("SELECT 1
                             FROM pmieducar.dispensa_disciplina dd
                             WHERE
                                     dd.disc_ref_ref_cod_disciplina = {$disciplina}
                                 AND dd.disc_ref_ref_cod_turma = {$this->ref_cod_turma}
                                 AND dd.disc_ref_ref_cod_serie = {$this->ref_cod_serie}
                                 AND dd.disc_ref_ref_cod_escola = {$this->ref_cod_escola}
+
+                            UNION
+
+                            SELECT 1
+                            FROM pmieducar.nota_aluno na
+                            WHERE
+                                    na.disc_ref_ref_cod_disciplina = {$disciplina}
+                                AND na.disc_ref_cod_turma = {$this->ref_cod_turma}
+                                AND na.disc_ref_ref_cod_serie = {$this->ref_cod_serie}
+                                AND na.disc_ref_ref_cod_escola = {$this->ref_cod_escola}
 
                             UNION
 
@@ -299,6 +311,8 @@ class clsPmieducarTurmaDisciplina extends Model
                                 AND qhh.ref_ref_cod_turma = {$this->ref_cod_turma}
                                 AND qhh.ref_ref_cod_serie = {$this->ref_cod_serie}
                                 AND qhh.ref_ref_cod_escola = {$this->ref_cod_escola}");
+
+            return $resultado;
         }
 
         return false;

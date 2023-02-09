@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\LegacyExemptionType;
 use iEducar\Legacy\Model;
 
 class clsPmieducarDispensaDisciplina extends Model
@@ -32,7 +31,7 @@ class clsPmieducarDispensaDisciplina extends Model
         $observacao = null,
         $cod_dispensa = null
     ) {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = $this->_schema . 'dispensa_disciplina';
 
@@ -73,8 +72,8 @@ class clsPmieducarDispensaDisciplina extends Model
         }
 
         if (is_numeric($ref_cod_tipo_dispensa)) {
-            $tipoDispensa = LegacyExemptionType::find($ref_cod_tipo_dispensa);
-            if ($tipoDispensa) {
+            $tipoDispensa = new clsPmieducarTipoDispensa($ref_cod_tipo_dispensa);
+            if ($tipoDispensa->existe()) {
                 $this->ref_cod_tipo_dispensa = $ref_cod_tipo_dispensa;
             }
         }
@@ -204,8 +203,8 @@ class clsPmieducarDispensaDisciplina extends Model
             is_numeric($this->ref_cod_escola) && is_numeric($this->ref_cod_disciplina) &&
             is_numeric($this->ref_usuario_exc)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
+            $gruda = '';
 
             if (is_numeric($this->ref_usuario_exc)) {
                 $set .= "{$gruda}ref_usuario_exc = '{$this->ref_usuario_exc}'";
@@ -242,9 +241,9 @@ class clsPmieducarDispensaDisciplina extends Model
             }
 
             if ($set) {
-                $this->detalhe();
+                $detalheAntigo = $this->detalhe();
                 $db->Consulta("UPDATE {$this->_tabela} SET $set WHERE ref_cod_matricula = '{$this->ref_cod_matricula}' AND ref_cod_serie = '{$this->ref_cod_serie}' AND ref_cod_escola = '{$this->ref_cod_escola}' AND ref_cod_disciplina = '{$this->ref_cod_disciplina}'");
-                $this->detalhe();
+                $detalheAtual = $this->detalhe();
 
                 return true;
             }
@@ -256,7 +255,7 @@ class clsPmieducarDispensaDisciplina extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $int_ref_cod_matricula = null,
@@ -484,7 +483,7 @@ class clsPmieducarDispensaDisciplina extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -504,7 +503,7 @@ class clsPmieducarDispensaDisciplina extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {
@@ -532,7 +531,7 @@ class clsPmieducarDispensaDisciplina extends Model
             is_numeric($this->ref_cod_escola) && is_numeric($this->ref_cod_disciplina) &&
             is_numeric($this->ref_usuario_exc)
         ) {
-            $this->detalhe();
+            $detalhe = $this->detalhe();
             $db = new clsBanco();
             $db->Consulta("DELETE FROM {$this->_tabela} WHERE ref_cod_matricula = '{$this->ref_cod_matricula}' AND ref_cod_disciplina = '{$this->ref_cod_disciplina}'");
 

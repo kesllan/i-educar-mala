@@ -38,9 +38,9 @@ class Portabilis_View_Helper_Input_Resource_MultipleSearchAreasConhecimento exte
     protected function loadAssets()
     {
         Portabilis_View_Helper_Application::loadChosenLib($this->viewInstance);
-        $jsFile = '/vendor/legacy/Portabilis/Assets/Javascripts/Frontend/Inputs/MultipleSearch.js';
+        $jsFile = '/modules/Portabilis/Assets/Javascripts/Frontend/Inputs/MultipleSearch.js';
         Portabilis_View_Helper_Application::loadJavascript($this->viewInstance, $jsFile);
-        $jsFile = '/vendor/legacy/Portabilis/Assets/Javascripts/Frontend/Inputs/Resource/MultipleSearchAreaconhecimento.js';
+        $jsFile = '/modules/Portabilis/Assets/Javascripts/Frontend/Inputs/Resource/MultipleSearchAreaconhecimento.js';
         Portabilis_View_Helper_Application::loadJavascript($this->viewInstance, $jsFile);
     }
 }

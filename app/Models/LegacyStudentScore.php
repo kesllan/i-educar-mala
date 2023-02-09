@@ -17,7 +17,7 @@ class LegacyStudentScore extends Model
      * @var array
      */
     protected $fillable = [
-        'matricula_id'
+        'matricula_id',
     ];
 
     /**
@@ -28,7 +28,7 @@ class LegacyStudentScore extends Model
     /**
      * @return BelongsTo
      */
-    public function registration(): BelongsTo
+    public function registration()
     {
         return $this->belongsTo(LegacyRegistration::class, 'matricula_id');
     }
@@ -36,7 +36,7 @@ class LegacyStudentScore extends Model
     /**
      * @return HasMany
      */
-    public function scoreGeneral(): HasMany
+    public function scoreGeneral()
     {
         return $this->hasMany(LegacyGeneralScore::class, 'nota_aluno_id');
     }
@@ -44,7 +44,7 @@ class LegacyStudentScore extends Model
     /**
      * @return HasMany
      */
-    public function scoreByDiscipline(): HasMany
+    public function scoreByDiscipline()
     {
         return $this->hasMany(LegacyDisciplineScore::class, 'nota_aluno_id');
     }
@@ -52,7 +52,7 @@ class LegacyStudentScore extends Model
     /**
      * @return HasMany
      */
-    public function averageByDiscipline(): HasMany
+    public function averageByDiscipline()
     {
         return $this->hasMany(LegacyDisciplineScoreAverage::class, 'nota_aluno_id');
     }
@@ -60,7 +60,7 @@ class LegacyStudentScore extends Model
     /**
      * @return HasMany
      */
-    public function averageGeneral(): HasMany
+    public function averageGeneral()
     {
         return $this->hasMany(LegacyGeneralAverage::class, 'nota_aluno_id');
     }

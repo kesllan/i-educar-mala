@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Builders\StateBuilder;
 use App\Models\Concerns\HasIbgeCode;
 use App\Support\Database\DateSerializer;
-use App\Traits\LegacyAttribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,29 +13,18 @@ class State extends Model
 {
     use DateSerializer;
     use HasIbgeCode;
-    use LegacyAttribute;
 
     /**
      * @var array
      */
     protected $fillable = [
-        'country_id',
-        'name',
-        'abbreviation',
-        'ibge_code',
+        'country_id', 'name', 'abbreviation', 'ibge_code',
     ];
-
-    /**
-     * Builder dos filtros
-     *
-     * @var string
-     */
-    protected $builder = StateBuilder::class;
 
     /**
      * @return BelongsTo
      */
-    public function country(): BelongsTo
+    public function country()
     {
         return $this->belongsTo(Country::class);
     }
@@ -45,7 +32,7 @@ class State extends Model
     /**
      * @return HasMany
      */
-    public function cities(): HasMany
+    public function cities()
     {
         return $this->hasMany(City::class);
     }
@@ -53,9 +40,9 @@ class State extends Model
     /**
      * @param string $abbreviation
      *
-     * @return State|null
+     * @return $this
      */
-    public static function findByAbbreviation(string $abbreviation): self|null
+    public static function findByAbbreviation($abbreviation)
     {
         return static::query()->where('abbreviation', $abbreviation)->first();
     }
@@ -63,7 +50,7 @@ class State extends Model
     /**
      * @return Collection
      */
-    public static function getListKeyAbbreviation(): Collection
+    public static function getListKeyAbbreviation()
     {
         return static::query()->orderBy('name')->pluck('name', 'abbreviation');
     }
@@ -73,12 +60,8 @@ class State extends Model
      *
      * @return string
      */
-    public static function getNameByAbbreviation(string|null $abbreviation): string
+    public static function getNameByAbbreviation($abbreviation)
     {
-        if ($abbreviation === null) {
-            return  '';
-        }
-
         $state = static::findByAbbreviation($abbreviation);
 
         return $state->name ?? '';

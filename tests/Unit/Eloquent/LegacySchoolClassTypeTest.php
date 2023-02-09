@@ -2,22 +2,15 @@
 
 namespace Tests\Unit\Eloquent;
 
-use App\Models\LegacyInstitution;
-use App\Models\LegacySchoolClass;
 use App\Models\LegacySchoolClassType;
 use Tests\EloquentTestCase;
 
 class LegacySchoolClassTypeTest extends EloquentTestCase
 {
-    public $relations = [
-        'institution' => LegacyInstitution::class,
-        'schoolClasses' => LegacySchoolClass::class
-    ];
-
     /**
      * @return string
      */
-    protected function getEloquentModelName(): string
+    protected function getEloquentModelName()
     {
         return LegacySchoolClassType::class;
     }

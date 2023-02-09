@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property LegacyStudent $student
  *
  */
-class StudentInep extends LegacyModel
+class StudentInep extends Model
 {
     /**
      * @var string
@@ -22,25 +23,18 @@ class StudentInep extends LegacyModel
      */
     protected $primaryKey = 'cod_aluno';
 
-    protected $fillable = [
-        'cod_aluno',
-        'cod_aluno_inep',
-        'nome_inep',
-        'fonte'
-    ];
+    protected $fillable = ['cod_aluno', 'cod_aluno_inep'];
 
-    public array $legacy = [
-        'student_id' => 'cod_aluno',
-        'number' => 'cod_aluno_inep',
-        'name' => 'nome_inep',
-        'font' => 'fonte'
-    ];
+    public function getNumberAttribute()
+    {
+        return $this->cod_aluno_inep;
+    }
 
     /**
      * @return BelongsTo
      */
-    public function student(): BelongsTo
+    public function student()
     {
-        return $this->belongsTo(LegacyStudent::class, 'cod_aluno');
+        return $this->belongsTo(LegacyStudent::class, 'cod_aluno', 'cod_aluno');
     }
 }

@@ -9,9 +9,9 @@ use App\Models\LegacyDiscipline;
 use App\Models\LegacyDisciplineAcademicYear;
 use App\Models\LegacyEducationLevel;
 use App\Models\LegacyEducationType;
-use App\Models\LegacyGrade;
 use App\Models\LegacyInstitution;
 use App\Models\LegacyKnowledgeArea;
+use App\Models\LegacyLevel;
 use App\Models\LegacySchool;
 use App\Models\LegacySchoolClass;
 use App\Models\LegacySchoolClassType;
@@ -21,7 +21,6 @@ use App\Models\LegacySchoolGradeDiscipline;
 use App\Models\SchoolClassInep;
 use App\Models\SchoolInep;
 use App\Services\Educacenso\RegistroImportInterface;
-use App\Services\Educacenso\Version2019\Models\Registro20Model;
 use App\Services\SchoolClass\PeriodService;
 use App\User;
 use Exception;
@@ -269,7 +268,7 @@ class Registro20Import implements RegistroImportInterface
     /**
      * @return SchoolClassInep|null
      */
-    protected function getSchoolClass()
+    private function getSchoolClass()
     {
         if (empty($this->model->inepTurma)) {
             return;
@@ -281,11 +280,11 @@ class Registro20Import implements RegistroImportInterface
     /**
      * @param $arrayColumns
      *
-     * @return Registro20|RegistroEducacenso
+     * @return Registro10|RegistroEducacenso
      */
     public static function getModel($arrayColumns)
     {
-        $registro = new Registro20Model();
+        $registro = new Registro20();
         $registro->hydrateModel($arrayColumns);
 
         return $registro;
@@ -335,7 +334,7 @@ class Registro20Import implements RegistroImportInterface
             throw new Exception('Não foi possível encontrar os dados do curso');
         }
 
-        $course = LegacyCourse::where('nm_curso', 'ilike', $courseData['curso'])->first();
+        $course = LegacyCourse::where('nm_curso', 'ilike', utf8_encode($courseData['curso']))->first();
 
         if (empty($course)) {
             $course = $this->createCourse($educationLevel, $educationType, $courseData);
@@ -403,7 +402,7 @@ class Registro20Import implements RegistroImportInterface
      * @param LegacySchool $school
      * @param LegacyCourse $course
      *
-     * @return LegacyGrade
+     * @return LegacyLevel
      */
     private function getOrCreateLevel(LegacySchool $school, LegacyCourse $course)
     {
@@ -417,7 +416,7 @@ class Registro20Import implements RegistroImportInterface
             $levelData = $this->getDataAee();
         }
 
-        $level = LegacyGrade::where('ref_cod_curso', $course->getKey())
+        $level = LegacyLevel::where('ref_cod_curso', $course->getKey())
             ->where('etapa_curso', $levelData['etapa'])
             ->first();
 
@@ -952,7 +951,7 @@ class Registro20Import implements RegistroImportInterface
      */
     private function createLevel($levelData, $course)
     {
-        return LegacyGrade::create([
+        return LegacyLevel::create([
             'nm_serie' => $levelData['serie'],
             'ref_usuario_cad' => $this->user->id,
             'ref_cod_curso' => $course->getKey(),
@@ -979,8 +978,8 @@ class Registro20Import implements RegistroImportInterface
             'ref_usuario_cad' => $this->user->id,
             'ref_cod_nivel_ensino' => $educationLevel->getKey(),
             'ref_cod_tipo_ensino' => $educationType->getKey(),
-            'nm_curso' => $courseData['curso'],
-            'sgl_curso' => substr($courseData['curso'], 0, 15),
+            'nm_curso' => utf8_encode($courseData['curso']),
+            'sgl_curso' => utf8_encode(substr($courseData['curso'], 0, 15)),
             'qtd_etapas' => $courseData['etapas'],
             'carga_horaria' => 800 * $courseData['etapas'],
             'data_cadastro' => now(),

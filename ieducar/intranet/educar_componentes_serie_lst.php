@@ -5,6 +5,7 @@ return new class extends clsListagem {
     public $titulo;
     public $limite;
     public $offset;
+
     public $cod_serie;
     public $ref_cod_curso;
     public $nm_serie;
@@ -34,7 +35,7 @@ return new class extends clsListagem {
 
         $this->addCabecalhos($lista_busca);
 
-        $this->inputsHelper()->dynamic(helperNames: ['instituicao', 'curso', 'serie'], inputOptions: ['required' => false]);
+        $this->inputsHelper()->dynamic(['instituicao', 'curso', 'serie'], ['required' => false]);
 
         // Paginador
         $this->limite = 10;
@@ -43,13 +44,13 @@ return new class extends clsListagem {
 
         $obj_serie = new clsPmieducarSerie();
         $obj_serie->setOrderby('nm_serie ASC');
-        $obj_serie->setLimite(intLimiteQtd: $this->limite, intLimiteOffset: $this->offset);
+        $obj_serie->setLimite($this->limite, $this->offset);
 
         $lista = $obj_serie->listaSeriesComComponentesVinculados(
-            int_cod_serie: $this->ref_cod_serie,
-            int_ref_cod_curso: $this->ref_cod_curso,
-            int_ref_cod_instituicao: $this->ref_cod_instituicao,
-            int_ativo: 1
+            $this->ref_cod_serie,
+            $this->ref_cod_curso,
+            $this->ref_cod_instituicao,
+            1
         );
 
         $total = $obj_serie->_total;
@@ -80,22 +81,22 @@ return new class extends clsListagem {
             }
         }
 
-        $this->addPaginador2(strUrl: 'educar_componentes_serie_lst.php', intTotalRegistros: $total, mixVariaveisMantidas: $_GET, nome: $this->nome, intResultadosPorPagina: $this->limite);
+        $this->addPaginador2('educar_componentes_serie_lst.php', $total, $_GET, $this->nome, $this->limite);
 
-        if ($obj_permissoes->permissao_cadastra(int_processo_ap: 9998859, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 3)) {
+        if ($obj_permissoes->permissao_cadastra(9998859, $this->pessoa_logada, 3)) {
             $this->acao = 'go("educar_componentes_serie_cad.php")';
             $this->nome_acao = 'Novo';
         }
 
         $this->largura = '100%';
 
-        $this->breadcrumb(currentPage: 'Componentes da série', breadcrumbs: [
+        $this->breadcrumb('Componentes da série', [
         url('intranet/educar_index.php') => 'Escola',
     ]);
 
-        $scripts = ['/vendor/legacy/Cadastro/Assets/Javascripts/ComponentesSerieFiltros.js'];
+        $scripts = ['/modules/Cadastro/Assets/Javascripts/ComponentesSerieFiltros.js'];
 
-        Portabilis_View_Helper_Application::loadJavascript(viewInstance: $this, files: $scripts);
+        Portabilis_View_Helper_Application::loadJavascript($this, $scripts);
     }
 
     public function Formular()

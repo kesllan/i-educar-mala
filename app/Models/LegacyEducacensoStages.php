@@ -2,21 +2,14 @@
 
 namespace App\Models;
 
-class LegacyEducacensoStages extends LegacyModel
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class LegacyEducacensoStages extends Model
 {
+    use HasFactory;
+
     protected $table = 'modules.etapas_educacenso';
-
-    protected $primaryKey = 'id';
-
-    protected $fillable = [
-        'nome',
-    ];
-
-    public array $legacy = [
-        'name' => 'nome'
-    ];
-
-    public $timestamps = false;
 
     public static function getDescriptiveValues(): array
     {

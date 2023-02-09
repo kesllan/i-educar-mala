@@ -37,6 +37,7 @@ class LegacySchoolHistoryFactory extends Factory
             'aprovado' => 1,
             'ativo' => 1,
             'faltas_globalizadas' => $this->faker->randomNumber(),
+            'promotion' => $this->faker->randomNumber(),
             'nm_serie' => $this->faker->word(),
             'origem' => 1,
             'extra_curricular' => 0,

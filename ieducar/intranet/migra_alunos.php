@@ -19,17 +19,17 @@ return new class {
     public function RenderHTML()
     {
 
-        set_time_limit(seconds: 0);
-        ini_set(option: 'memory_limit', value: -1);
+        set_time_limit(0);
+        ini_set('memory_limit', -1);
 
         $dados = $this->getStudents();
 
         foreach ($dados as $item) {
-            $data = $this->splitInformations(item: $item);
-            if ($data === false || count(value: $data) === 0) {
+            $data = $this->splitInformations($item);
+            if ($data === false || count($data) === 0) {
                 continue;
             }
-            $this->processStuddents(studentCods: $data);
+            $this->processStuddents($data);
         }
 
 
@@ -38,14 +38,14 @@ return new class {
 
     private function splitInformations($item): ?array
     {
-        $cleanData = substr(string: substr(string: $item->alunos, offset: 1), offset: 0, length: -1);
+        $cleanData = substr(substr($item->alunos,1),0, -1);
 
-        return explode(separator: ',', string: $cleanData);
+        return explode(',', $cleanData);
     }
 
     private function findStudentPrincipal(array $studentCods)
     {
-        return min(value: $studentCods);
+        return min($studentCods);
     }
 
 
@@ -57,21 +57,21 @@ return new class {
             }
         }
 
-        return array_values(array: $studentCods);
+        return array_values($studentCods);
     }
 
     private function processStuddents(array $studentCods)
     {
-        $principal = $this->findStudentPrincipal(studentCods: $studentCods);
-        $studentCods = $this->clearStudentList(pricipal: $principal, studentCods: $studentCods);
+        $principal = $this->findStudentPrincipal($studentCods);
+        $studentCods = $this->clearStudentList($principal, $studentCods);
 
-        $this->unificaAlunos(principal: $principal, cod_alunos: $studentCods);
+        $this->unificaAlunos($principal, $studentCods);
 
-        $alunosPrincipal = $this->getStudentDetails(id: $principal);
+        $alunosPrincipal = $this->getStudentDetails($principal);
         $codPessoaPrincipal = $alunosPrincipal['ref_idpes'];
-        $codPessoas  = $this->buscaCodPessoas(studentCods: $studentCods);
+        $codPessoas  = $this->buscaCodPessoas($studentCods);
 
-        $this->unificaPessoas(codPessoaPrincipal: $codPessoaPrincipal, codPessoas: $codPessoas);
+        $this->unificaPessoas($codPessoaPrincipal, $codPessoas);
 
     }
 
@@ -79,7 +79,7 @@ return new class {
     {
         $data = [];
         foreach ($studentCods as $cod) {
-            $alunosPrincipal = $this->getStudentDetails(id: $cod);
+            $alunosPrincipal = $this->getStudentDetails($cod);
             $codPessoaPrincipal = $alunosPrincipal['ref_idpes'];
             $data[] = $codPessoaPrincipal;
         }
@@ -90,8 +90,8 @@ return new class {
     private function unificaAlunos($principal, $cod_alunos)
     {
         DB::beginTransaction();
-        $unificationId = $this->createLog(mainId: $principal, duplicatesId: $cod_alunos, createdBy: $this->pessoa_logada);
-        App_Unificacao_Aluno::unifica(codAlunoPrincipal: $principal, codAlunos: $cod_alunos, codPessoa: $this->pessoa_logada, db: new clsBanco(), unificationId: $unificationId);
+        $unificationId = $this->createLog($principal, $cod_alunos, $this->pessoa_logada);
+        App_Unificacao_Aluno::unifica($principal, $cod_alunos, $this->pessoa_logada, new clsBanco(), $unificationId);
 
         try {
             DB::commit();
@@ -108,7 +108,7 @@ return new class {
         $log = new LogUnification();
         $log->type = StudentLogUnification::getType();
         $log->main_id = $mainId;
-        $log->duplicates_id = json_encode(value: $duplicatesId);
+        $log->duplicates_id = json_encode($duplicatesId);
         $log->created_by = $createdBy;
         $log->updated_by = $createdBy;
         $log->save();
@@ -121,10 +121,10 @@ return new class {
         $log = new LogUnification();
         $log->type = PersonLogUnification::getType();
         $log->main_id = $mainId;
-        $log->duplicates_id = json_encode(value: $duplicatesId);
+        $log->duplicates_id = json_encode($duplicatesId);
         $log->created_by = $createdBy;
         $log->updated_by = $createdBy;
-        $log->duplicates_name = json_encode(value: $this->getNamesOfUnifiedPeople(duplicatesId: $duplicatesId));
+        $log->duplicates_name = json_encode($this->getNamesOfUnifiedPeople($duplicatesId));
         $log->save();
 
         return $log->id;
@@ -143,7 +143,7 @@ return new class {
         $names = [];
 
         foreach ($duplicatesId as $personId) {
-            $names[] = Individual::query()->findOrFail(id: $personId)->real_name;
+            $names[] = Individual::query()->findOrFail($personId)->real_name;
         }
 
         return $names;
@@ -153,8 +153,8 @@ return new class {
     {
         DB::beginTransaction();
 
-        $unificationId = $this->createLogPerson(mainId: $codPessoaPrincipal, duplicatesId: $codPessoas, createdBy: $this->pessoa_logada);
-        $unificador = new App_Unificacao_Pessoa(codigoUnificador: $codPessoaPrincipal, codigosDuplicados: $codPessoas, codPessoaLogada: $this->pessoa_logada, db: new clsBanco(), unificationId: $unificationId);
+        $unificationId = $this->createLogPerson($codPessoaPrincipal, $codPessoas, $this->pessoa_logada);
+        $unificador = new App_Unificacao_Pessoa($codPessoaPrincipal, $codPessoas, $this->pessoa_logada, new clsBanco(), $unificationId);
 
         try {
             $unificador->unifica();
@@ -168,7 +168,7 @@ return new class {
 
     private function getStudentDetails($id): array
     {
-        return (new clsPmieducarAluno(cod_aluno: $id))->detalhe();
+        return (new clsPmieducarAluno($id))->detalhe();
     }
 
     private function getStudents()
@@ -195,7 +195,7 @@ return new class {
             ORDER BY alunos.nome_aluno
         SQL;
 
-        foreach (DB::select(query: $query) as $data) {
+        foreach (DB::select($query) as $data) {
             yield $data;
         }
     }

@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\LegacyExemptionType;
-
 return new class extends clsDetalhe {
 
     public $titulo;
@@ -21,7 +19,8 @@ return new class extends clsDetalhe {
 
         $this->cod_tipo_dispensa=$_GET['cod_tipo_dispensa'];
 
-        $registro = LegacyExemptionType::find($this->cod_tipo_dispensa)?->getAttributes();
+        $tmp_obj = new clsPmieducarTipoDispensa($this->cod_tipo_dispensa);
+        $registro = $tmp_obj->detalhe();
         if (! $registro) {
             $this->simpleRedirect('educar_tipo_dispensa_lst.php');
         }

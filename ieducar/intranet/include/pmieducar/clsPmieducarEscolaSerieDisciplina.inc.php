@@ -23,7 +23,7 @@ class clsPmieducarEscolaSerieDisciplina extends Model
         $etapas_utilizadas = false,
         $anos_letivos = []
     ) {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = $this->_schema . 'escola_serie_disciplina';
 
@@ -135,6 +135,7 @@ class clsPmieducarEscolaSerieDisciplina extends Model
             if (is_array($this->anos_letivos)) {
                 $campos .= "{$gruda}anos_letivos";
                 $valores .= "{$gruda} " . Portabilis_Utils_Database::arrayToPgArray($this->anos_letivos) . ' ';
+                $grupo = ', ';
             }
 
             $campos .= "{$gruda}ativo";
@@ -285,7 +286,7 @@ class clsPmieducarEscolaSerieDisciplina extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -303,7 +304,7 @@ class clsPmieducarEscolaSerieDisciplina extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {
@@ -371,6 +372,30 @@ class clsPmieducarEscolaSerieDisciplina extends Model
             while ($db->ProximoRegistro()) {
                 $resultado[] = $db->Tupla();
             }
+
+            return $resultado;
+        }
+
+        return false;
+    }
+
+    public function eh_usado($disciplina)
+    {
+        if (is_numeric($disciplina) && is_numeric($this->ref_ref_cod_serie) && is_numeric($this->ref_ref_cod_escola)) {
+            $db = new clsBanco();
+            $resultado = $db->CampoUnico("SELECT 1
+               FROM pmieducar.turma_disciplina td
+              WHERE td.ref_cod_disciplina = {$disciplina}
+                AND td.ref_cod_escola = {$this->ref_ref_cod_escola}
+                AND td.ref_cod_serie = {$this->ref_ref_cod_serie}
+
+              UNION
+
+              SELECT 1
+               FROM pmieducar.disciplina_disciplina_topico ddt
+              WHERE ddt.ref_ref_cod_disciplina = {$disciplina}
+                AND ddt.ref_ref_ref_cod_escola = {$this->ref_ref_cod_escola}
+                AND ddt.ref_ref_ref_cod_serie = {$this->ref_ref_cod_serie}");
 
             return $resultado;
         }

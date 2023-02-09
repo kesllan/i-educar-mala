@@ -2,20 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\SoftDeletes\LegacySoftDeletes;
-use App\Traits\HasLegacyDates;
-use App\Traits\HasLegacyUserAction;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property string $name
  */
-class LegacyComplementSchool extends LegacyModel
+class LegacyComplementSchool extends Model
 {
-    use HasLegacyDates;
-    use HasLegacyUserAction;
-    use LegacySoftDeletes;
-
     /**
      * @var string
      */
@@ -30,40 +24,27 @@ class LegacyComplementSchool extends LegacyModel
      * @var array
      */
     protected $fillable = [
-        'cep',
-        'numero',
-        'complemento',
+        'ref_cod_escola',
+        'ref_usuario_exc',
+        'ref_usuario_cad',
         'email',
         'nm_escola',
-        'municipio',
-        'bairro',
-        'logradouro',
-        'ddd_telefone',
-        'telefone',
-        'ddd_fax',
-        'fax',
+        'data_cadastro',
+        'ativo',
+        'cep',
+        'municipio'
     ];
 
-    public array $legacy = [
-        'id' => 'ref_cod_escola',
-        'name' => 'nm_escola',
-        'active' => 'ativo',
-        'city' => 'municipio',
-        'number' => 'numero',
-        'complement' => 'complemento',
-        'district' => 'bairro',
-        'address' => 'logradouro',
-        'ddd_phone' => 'ddd_telefone',
-        'phone' => 'telefone',
-        'ddd_fax' => 'ddd_fax',
-        'fax' => 'fax',
-    ];
+    /**
+     * @var bool
+     */
+    public $timestamps = false;
 
     /**
      * @return BelongsTo
      */
     public function school()
     {
-        return $this->belongsTo(LegacySchool::class, 'ref_cod_escola', 'cod_escola');
+        return $this->belongsTo(LegacyPersonAddress::class, 'ref_cod_escola', 'cod_escola');
     }
 }

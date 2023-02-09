@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\LegacyRace;
 use App\Services\UrlPresigner;
 use iEducar\Modules\Addressing\LegacyAddressingFields;
 use iEducar\Modules\Educacenso\Model\PaisResidencia;
@@ -259,6 +258,26 @@ class AlunoController extends Portabilis_Controller_Page_EditController
 
         'recebe_escolarizacao_em_outro_espaco' => ['label' => 'Recebe escolarização em outro espaço (diferente da escola)'],
 
+        'transporte_rota' => [
+            'label' => 'Rota',
+            'help' => '',
+        ],
+
+        'transporte_ponto' => [
+            'label' => 'Ponto de embarque',
+            'help' => '',
+        ],
+
+        'transporte_destino' => [
+            'label' => 'Destino (Caso for diferente da rota)',
+            'help' => '',
+        ],
+
+        'transporte_observacao' => [
+            'label' => 'Observações do transporte',
+            'help' => '',
+        ],
+
         'observacao_aluno' => [
             'label' => 'Observações do aluno',
             'help' => '',
@@ -290,6 +309,8 @@ class AlunoController extends Portabilis_Controller_Page_EditController
 
         $configuracoes = new clsPmieducarConfiguracoesGerais();
         $configuracoes = $configuracoes->detalhe();
+
+        $labels_botucatu = config('legacy.app.mostrar_aplicacao') == 'botucatu';
 
         if ($configuracoes['justificativa_falta_documentacao_obrigatorio']) {
             $this->inputsHelper()->hidden('justificativa_falta_documentacao_obrigatorio');
@@ -761,6 +782,28 @@ class AlunoController extends Portabilis_Controller_Page_EditController
         ];
         $this->inputsHelper()->multipleSearchCustom('', $options, $helperOptions);
 
+        $obj_rota = new clsModulesRotaTransporteEscolar();
+        $obj_rota->setOrderBy(' descricao asc ');
+        $lista_rota = $obj_rota->lista();
+        $rota_resources = ['' => 'Selecione uma rota'];
+        foreach ($lista_rota as $reg) {
+            $rota_resources["{$reg['cod_rota_transporte_escolar']}"] = "{$reg['descricao']}";
+        }
+
+        $options = ['label' => $this->_getLabel('transporte_rota'), 'required' => false, 'resources' => $rota_resources];
+        $this->inputsHelper()->select('transporte_rota', $options);
+
+
+        $options = ['label' => $this->_getLabel('transporte_ponto'), 'required' => false, 'resources' => ['' => 'Selecione uma rota acima']];
+        $this->inputsHelper()->select('transporte_ponto', $options);
+
+
+        $options = ['label' => $this->_getLabel('transporte_destino'), 'required' => false];
+        $this->inputsHelper()->simpleSearchPessoaj('transporte_destino', $options);
+
+        $options = ['label' => $this->_getLabel('transporte_observacao'), 'required' => false, 'size' => 50, 'max_length' => 255];
+        $this->inputsHelper()->textArea('transporte_observacao', $options);
+
         $this->inputsHelper()->religiao(['required' => false, 'label' => 'Religião']);
 
         $helperOptions = ['objectName' => 'beneficios'];
@@ -1146,7 +1189,7 @@ class AlunoController extends Portabilis_Controller_Page_EditController
         $enderecamentoObrigatorio = false;
         $desativarCamposDefinidosViaCep = true;
 
-        $this->viewAddress(true);
+        $this->viewAddress();
 
         $zonas = App_Model_ZonaLocalizacao::getInstance();
         $zonas = $zonas->getEnums();
@@ -1173,8 +1216,8 @@ class AlunoController extends Portabilis_Controller_Page_EditController
         $this->inputsHelper()->select('pais_residencia', $options);
 
         Portabilis_View_Helper_Application::loadJavascript($this, [
-            '/vendor/legacy/Cadastro/Assets/Javascripts/Endereco.js',
-            '/vendor/legacy/Cadastro/Assets/Javascripts/Addresses.js',
+            '/modules/Cadastro/Assets/Javascripts/Endereco.js',
+            '/modules/Cadastro/Assets/Javascripts/Addresses.js',
         ]);
 
         $this->loadResourceAssets($this->getDispatcher());
@@ -1198,15 +1241,16 @@ class AlunoController extends Portabilis_Controller_Page_EditController
         $this->CampoOculto('obrigar_documento_pessoa', (int) $obrigarDocumentoPessoa);
         $this->CampoOculto('obrigar_telefone_pessoa', (int) $obrigarTelefonePessoa);
 
-        $race =  LegacyRace::query()
-            ->where('ativo', true)
-            ->orderBy('nm_raca')
-            ->pluck('nm_raca', 'cod_raca')
-            ->prepend( 'Selecione','')
-            ->toArray()
-        ;
+        $racas         = new clsCadastroRaca();
+        $racas         = $racas->lista(null, null, null, null, null, null, null, true);
 
-        $this->campoLista('cor_raca', 'Raça', $race, $this->cod_raca, '', false, '', '', '', $obrigarCamposCenso);
+        foreach ($racas as $raca) {
+            $selectOptions[$raca['cod_raca']] = $raca['nm_raca'];
+        }
+
+        $selectOptions = [null => 'Selecione'] + Portabilis_Array_Utils::sortByValue($selectOptions);
+
+        $this->campoLista('cor_raca', 'Raça', $selectOptions, $this->cod_raca, '', false, '', '', '', $obrigarCamposCenso);
 
         $zonas = [
             '' => 'Selecione',

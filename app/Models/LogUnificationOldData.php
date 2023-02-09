@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class LogUnificationOldData extends Model
@@ -19,17 +18,13 @@ class LogUnificationOldData extends Model
         return $this->belongsTo(LogUnification::class, 'unification_id', 'id');
     }
 
-    protected function keys(): Attribute
+    public function getKeysAttribute($value)
     {
-        return Attribute::make(
-            get: static fn ($value) => json_decode($value, true)
-        );
+        return json_decode($value, true);
     }
 
-    protected function oldData(): Attribute
+    public function getOldDataAttribute($value)
     {
-        return Attribute::make(
-            get: static fn ($value) => json_decode($value, true)
-        );
+        return json_decode($value, true);
     }
 }

@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\LegacyEducationType;
-
 return new class extends clsCadastro {
     public $pessoa_logada;
     public $cod_tipo_ensino;
@@ -27,8 +25,8 @@ return new class extends clsCadastro {
         $this->cod_tipo_ensino=$_GET['cod_tipo_ensino'];
 
         if (is_numeric($this->cod_tipo_ensino)) {
-            $registro = LegacyEducationType::find($this->cod_tipo_ensino)?->getAttributes();
-            if (!$registro) {
+            $obj = new clsPmieducarTipoEnsino($this->cod_tipo_ensino, null, null, null, null, null, 1);
+            if (!$registro = $obj->detalhe()) {
                 $this->simpleRedirect('educar_tipo_ensino_lst.php');
             }
 
@@ -79,18 +77,20 @@ return new class extends clsCadastro {
     {
         $this->atividade_complementar = is_null($this->atividade_complementar) ? false : true;
 
-        $object = new LegacyEducationType();
-        $object->ref_usuario_cad = $this->pessoa_logada;
-        $object->nm_tipo = $this->nm_tipo;
-        $object->ref_cod_instituicao = $this->ref_cod_instituicao;
-        $object->atividade_complementar = $this->atividade_complementar;
-
-        if ($object->save()) {
+        $obj = new clsPmieducarTipoEnsino();
+        $obj->ref_usuario_cad        = $this->pessoa_logada;
+        $obj->nm_tipo                = $this->nm_tipo;
+        $obj->ativo                  = 1;
+        $obj->ref_cod_instituicao    = $this->ref_cod_instituicao;
+        $obj->atividade_complementar = $this->atividade_complementar;
+        $cadastrou = $obj->cadastra();
+        if ($cadastrou) {
             $this->mensagem .= 'Cadastro efetuado com sucesso.<br>';
             $this->simpleRedirect('educar_tipo_ensino_lst.php');
         }
 
         $this->mensagem = 'Cadastro não realizado.<br>';
+
         return false;
     }
 
@@ -98,34 +98,36 @@ return new class extends clsCadastro {
     {
         $this->atividade_complementar = is_null($this->atividade_complementar) ? false : true;
 
-        $object = LegacyEducationType::find($this->cod_tipo_ensino);
-        $object->ativo = 1;
-        $object->ref_usuario_exc = $this->pessoa_logada;
-        $object->nm_tipo = $this->nm_tipo;
-        $object->ref_cod_instituicao = $this->ref_cod_instituicao;
-        $object->atividade_complementar = $this->atividade_complementar;
+        $obj = new clsPmieducarTipoEnsino();
+        $obj->cod_tipo_ensino        = $this->cod_tipo_ensino;
+        $obj->ref_usuario_exc        = $this->pessoa_logada;
+        $obj->nm_tipo                = $this->nm_tipo;
+        $obj->ativo                  = 1;
+        $obj->ref_cod_instituicao    = $this->ref_cod_instituicao;
+        $obj->atividade_complementar = $this->atividade_complementar;
 
-        if ($object->save()) {
+        $editou = $obj->edita();
+        if ($editou) {
             $this->mensagem .= 'Edição efetuada com sucesso.<br>';
             $this->simpleRedirect('educar_tipo_ensino_lst.php');
         }
 
         $this->mensagem = 'Edição não realizada.<br>';
+
         return false;
     }
 
     public function Excluir()
     {
-        $object = LegacyEducationType::find($this->cod_tipo_ensino);
-        $object->ativo = 0;
-        $object->ref_usuario_exc = $this->pessoa_logada;
-
-        if ($object->save()) {
+        $obj = new clsPmieducarTipoEnsino($this->cod_tipo_ensino, $this->pessoa_logada, null, $this->nm_tipo, null, null, 0);
+        $excluiu = $obj->excluir();
+        if ($excluiu) {
             $this->mensagem .= 'Exclusão efetuada com sucesso.<br>';
             $this->simpleRedirect('educar_tipo_ensino_lst.php');
         }
 
         $this->mensagem = 'Exclusão não realizada.<br>';
+
         return false;
     }
 

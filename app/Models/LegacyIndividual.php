@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -10,10 +9,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class LegacyIndividual extends Model
 {
     use HasFiles;
-
-    public const CREATED_AT = 'data_cad';
-
-    public const UPDATED_AT = null;
 
     /**
      * @var string
@@ -88,6 +83,11 @@ class LegacyIndividual extends Model
     ];
 
     /**
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
      * @return BelongsToMany
      */
     public function race()
@@ -118,7 +118,7 @@ class LegacyIndividual extends Model
      */
     public function person()
     {
-        return $this->belongsTo(LegacyPerson::class, 'idpes', 'idpes');
+        return $this->hasOne(LegacyPerson::class, 'idpes', 'idpes');
     }
 
     /**
@@ -127,21 +127,6 @@ class LegacyIndividual extends Model
     public function student()
     {
         return $this->hasOne(LegacyStudent::class, 'ref_idpes', 'idpes');
-    }
-
-    public function mother()
-    {
-        return $this->belongsTo(LegacyPerson::class, 'idpes_mae', 'idpes');
-    }
-
-    public function father()
-    {
-        return $this->belongsTo(LegacyPerson::class, 'idpes_pai', 'idpes');
-    }
-
-    public function responsible()
-    {
-        return $this->belongsTo(LegacyPerson::class, 'idpes_responsavel', 'idpes');
     }
 
     /**
@@ -176,25 +161,15 @@ class LegacyIndividual extends Model
     }
 
     /**
-     * @param string|int $cpf
+     * @param string $cpf
      *
-     * @return Model|null
+     * @return $this
      */
-    public static function findByCpf(string|int $cpf): ?Model
+    public static function findByCpf($cpf)
     {
-        $cpf = preg_replace('/\D/', '', $cpf);
+        $cpf = preg_replace('/[^0-9]/', '', $cpf);
+        $cpf = intval($cpf);
 
-        if ($cpf === null) {
-            return  null;
-        }
-
-        return static::query()->where('cpf', (int) $cpf)->first();
-    }
-
-    protected function cpf(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => int2CPF($value),
-        );
+        return static::query()->where('cpf', $cpf)->first();
     }
 }

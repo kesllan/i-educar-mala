@@ -87,7 +87,8 @@ class clsPmieducarMatricula extends Model
         $observacoes = false,
         $modalidadeEnsino = self::MODELO_PRESENCIAL
     ) {
-        $this->db = new clsBanco();
+        $db = new clsBanco();
+        $this->db = $db;
         $this->_schema = 'pmieducar.';
         $this->_tabela = $this->_schema . 'matricula';
 
@@ -345,7 +346,7 @@ class clsPmieducarMatricula extends Model
             $this->cod_matricula = $db->InsertId("{$this->_tabela}_cod_matricula_seq");
 
             if ($this->cod_matricula) {
-                $this->detalhe();
+                $detalhe = $this->detalhe();
             }
 
             return $this->cod_matricula;
@@ -375,8 +376,8 @@ class clsPmieducarMatricula extends Model
     {
         if (is_numeric($this->cod_matricula)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
+            $gruda = '';
 
             if (is_numeric($this->ref_cod_reserva_vaga)) {
                 $set .= "{$gruda}ref_cod_reserva_vaga = '{$this->ref_cod_reserva_vaga}'";
@@ -508,7 +509,7 @@ class clsPmieducarMatricula extends Model
             }
 
             if ($set) {
-                $this->detalhe();
+                $detalheAntigo = $this->detalhe();
                 $db->Consulta("UPDATE {$this->_tabela} SET $set WHERE cod_matricula = '{$this->cod_matricula}'");
 
                 return true;
@@ -521,7 +522,7 @@ class clsPmieducarMatricula extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $int_cod_matricula = null,
@@ -1047,7 +1048,7 @@ class clsPmieducarMatricula extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -1084,7 +1085,7 @@ class clsPmieducarMatricula extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {
@@ -1186,8 +1187,7 @@ class clsPmieducarMatricula extends Model
     public function getEndMatricula($codAluno)
     {
         $db = new clsBanco();
-
-        return $db->CampoUnico("SELECT matricula.aprovado
+        $situacaoUltimaMatricula = $db->CampoUnico("SELECT matricula.aprovado
                                                       FROM pmieducar.matricula
                                                      WHERE matricula.ref_cod_aluno = $codAluno
                                                        AND matricula.ativo = 1
@@ -1195,6 +1195,47 @@ class clsPmieducarMatricula extends Model
                                                                                         FROM pmieducar.matricula AS m
                                                                                        WHERE m.ref_cod_aluno = matricula.ref_cod_aluno
                                                                                          AND m.ativo = 1)");
+
+        return $situacaoUltimaMatricula;
+    }
+
+    public function isSequencia($origem, $destino)
+    {
+        $obj = new clsPmieducarSequenciaSerie();
+        $sequencia = $obj->lista($origem, null, null, null, null, null, null, null, 1);
+        $achou = false;
+
+        if ($sequencia) {
+            do {
+                if ($lista['ref_serie_origem'] == $destino) {
+                    $achou = true;
+                    break;
+                }
+                if ($lista['ref_serie_destino'] == $destino) {
+                    $achou = true;
+                    break;
+                }
+
+                $sequencia_ = $obj->lista(
+                    $lista['ref_serie_destino'],
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    1
+                );
+
+                if (!$lista) {
+                    $achou = false;
+                    break;
+                }
+            } while ($achou != false);
+        }
+
+        return $achou;
     }
 
     public function getInicioSequencia()
@@ -1233,6 +1274,55 @@ class clsPmieducarMatricula extends Model
         }
 
         return $resultado;
+    }
+
+    /**
+     * Retorna os dados de um registro.
+     *
+     * @return array
+     */
+    public function numModulo(
+        $int_ref_ref_cod_serie,
+        $int_ref_ref_cod_escola,
+        $int_ref_ref_cod_turma,
+        $int_ref_cod_turma,
+        $int_ref_ref_cod_matricula
+    ) {
+        $db = new clsBanco();
+        $sql = "SELECT CASE WHEN FLOOR((SELECT COUNT(*)
+                                          FROM pmieducar.nota_aluno
+                                         WHERE disc_ref_ref_cod_serie = {$int_ref_ref_cod_serie}
+                                           AND disc_ref_ref_cod_escola = {$int_ref_ref_cod_escola}
+                                           AND disc_ref_cod_turma = {$int_ref_ref_cod_turma}
+                                           AND ref_ref_cod_matricula = {$int_ref_ref_cod_matricula}
+                                           AND ref_ref_cod_turma = {$int_ref_cod_turma}) / ((SELECT COUNT(*)
+                                                                                               FROM pmieducar.disciplina_serie
+                                                                                              WHERE ref_cod_serie = {$int_ref_ref_cod_serie}) - (SELECT COUNT(0)
+                                                                                                                                                   FROM pmieducar.dispensa_disciplina
+                                                                                                                                                  WHERE ref_ref_cod_turma = {$int_ref_cod_turma}
+                                                                                                                                                    AND ref_ref_cod_matricula = {$int_ref_ref_cod_matricula}
+                                                                                                                                                    AND disc_ref_ref_cod_turma = {$int_ref_ref_cod_turma}
+                                                                                                                                                    AND disc_ref_ref_cod_serie = {$int_ref_ref_cod_serie}
+                                                                                                                                                    AND disc_ref_ref_cod_escola = {$int_ref_ref_cod_escola}))) = 0
+                            THEN 0
+                       ELSE FLOOR((SELECT COUNT(*)
+                                     FROM pmieducar.nota_aluno
+                                    WHERE disc_ref_ref_cod_serie = {$int_ref_ref_cod_serie}
+                                      AND disc_ref_ref_cod_escola = {$int_ref_ref_cod_escola}
+                                      AND disc_ref_cod_turma = {$int_ref_ref_cod_turma}
+                                      AND ref_ref_cod_matricula = {$int_ref_ref_cod_matricula}
+                                      AND ref_ref_cod_turma = {$int_ref_cod_turma}) / ((SELECT COUNT(*)
+                                                                                          FROM pmieducar.disciplina_serie
+                                                                                         WHERE ref_cod_serie = {$int_ref_ref_cod_serie}) - (SELECT COUNT(0)
+                                                                                                                                              FROM pmieducar.dispensa_disciplina
+                                                                                                                                             WHERE ref_ref_cod_turma = {$int_ref_cod_turma}
+                                                                                                                                               AND ref_ref_cod_matricula = {$int_ref_ref_cod_matricula}
+                                                                                                                                               AND disc_ref_ref_cod_turma = {$int_ref_ref_cod_turma}
+                                                                                                                                               AND disc_ref_ref_cod_serie = {$int_ref_ref_cod_serie}
+                                                                                                                                               AND disc_ref_ref_cod_escola = {$int_ref_ref_cod_escola})))
+                END";
+
+        return $db->CampoUnico($sql);
     }
 
     /**
@@ -1439,7 +1529,8 @@ class clsPmieducarMatricula extends Model
             $db = new clsBanco();
 
             foreach ($array_inicio_sequencias as $serie_inicio) {
-                $seq_ini = $serie_inicio[0];
+                $serie_inicio = $serie_inicio[0];
+                $seq_ini = $serie_inicio;
                 $seq_correta = false;
                 $series[$cod_serie] = $cod_serie;
 
@@ -1459,6 +1550,7 @@ class clsPmieducarMatricula extends Model
                     $db->Consulta($sql);
                     $db->ProximoRegistro();
                     $tupla = $db->Tupla();
+                    $serie_origem = $tupla['ref_serie_origem'];
                     $seq_ini = $serie_destino = $tupla['ref_serie_destino'];
                     $series[$tupla['ref_serie_destino']] = $tupla['ref_serie_destino'];
                     $sql = "SELECT 1
@@ -1469,7 +1561,7 @@ class clsPmieducarMatricula extends Model
                 } while ($true);
 
                 $obj_serie = new clsPmieducarSerie($serie_destino);
-                $obj_serie->detalhe();
+                $det_serie = $obj_serie->detalhe();
 
                 if ($cod_serie == $serie_destino) {
                     $seq_correta = true;
@@ -1559,7 +1651,8 @@ class clsPmieducarMatricula extends Model
             $db = new clsBanco();
 
             foreach ($array_inicio_sequencias as $serie_inicio) {
-                $seq_ini = $serie_inicio[0];
+                $serie_inicio = $serie_inicio[0];
+                $seq_ini = $serie_inicio;
                 $seq_correta = false;
                 $series[$cod_serie] = $cod_serie;
                 do {
@@ -1578,6 +1671,7 @@ class clsPmieducarMatricula extends Model
                     $db->Consulta($sql);
                     $db->ProximoRegistro();
                     $tupla = $db->Tupla();
+                    $serie_origem = $tupla['ref_serie_origem'];
                     $seq_ini = $serie_destino = $tupla['ref_serie_destino'];
                     $series[$tupla['ref_serie_destino']] = $tupla['ref_serie_destino'];
                     $sql = "SELECT 1
@@ -1588,7 +1682,7 @@ class clsPmieducarMatricula extends Model
                 } while ($true);
 
                 $obj_serie = new clsPmieducarSerie($serie_destino);
-                $obj_serie->detalhe();
+                $det_serie = $obj_serie->detalhe();
 
                 if ($cod_serie == $serie_destino) {
                     $seq_correta = true;

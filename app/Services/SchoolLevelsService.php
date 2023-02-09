@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\LegacyGrade;
+use App\Models\LegacyLevel;
 
 class SchoolLevelsService
 {
@@ -15,7 +15,7 @@ class SchoolLevelsService
      */
     public function getEvaluationRules($levelId)
     {
-        $level = LegacyGrade::with('evaluationRules')->find($levelId);
+        $level = LegacyLevel::with('evaluationRules')->find($levelId);
 
         if (empty($level)) {
             return [];
@@ -34,8 +34,8 @@ class SchoolLevelsService
      */
     public function levelAllowDefineDisciplinePerStage($levelId, $academicYear)
     {
-        /** @var LegacyGrade $level */
-        $level = LegacyGrade::with('evaluationRules')
+        /** @var LegacyLevel $level */
+        $level = LegacyLevel::with('evaluationRules')
             ->whereCodSerie($levelId)
             ->get()
             ->first();

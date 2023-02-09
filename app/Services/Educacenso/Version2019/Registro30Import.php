@@ -2,7 +2,6 @@
 
 namespace App\Services\Educacenso\Version2019;
 
-use App\Models\Country;
 use App\Models\Educacenso\Registro30;
 use App\Models\Educacenso\RegistroEducacenso;
 use App\Models\EducacensoDegree;
@@ -11,6 +10,7 @@ use App\Models\Employee;
 use App\Models\EmployeeGraduation;
 use App\Models\EmployeeInep;
 use App\Models\LegacyCity;
+use App\Models\LegacyCountry;
 use App\Models\LegacyDeficiency;
 use App\Models\LegacyDocument;
 use App\Models\LegacyIndividual;
@@ -27,6 +27,7 @@ use iEducar\Modules\Educacenso\Model\Deficiencias;
 use iEducar\Modules\Educacenso\Model\Escolaridade;
 use iEducar\Modules\Educacenso\Model\FormacaoContinuada;
 use iEducar\Modules\Educacenso\Model\Nacionalidade;
+use iEducar\Modules\Educacenso\Model\PosGraduacao;
 use iEducar\Modules\Educacenso\Model\RecursosRealizacaoProvas;
 
 class Registro30Import implements RegistroImportInterface
@@ -440,7 +441,7 @@ class Registro30Import implements RegistroImportInterface
     /**
      * @param $countryIbge
      *
-     * @return Country|null
+     * @return LegacyCountry|null
      */
     private function getCountry($countryIbge)
     {
@@ -448,9 +449,9 @@ class Registro30Import implements RegistroImportInterface
             return null;
         }
 
-        $country = Country::where('ibge_code', $countryIbge)->first();
+        $legacyCountry = LegacyCountry::where('cod_ibge', $countryIbge)->first();
 
-        return $country ? $country->getKey() : null;
+        return $legacyCountry ? $legacyCountry->getKey() : null;
     }
 
     protected function createRecursosProvaInep(LegacyStudent $student)
@@ -560,6 +561,7 @@ class Registro30Import implements RegistroImportInterface
         $this->createEmployeeInep($employee);
         $this->createEscolaridade($employee);
         $this->createEmployeeGraduations($employee);
+        $this->storeEmployeePostgraduate($employee);
         $this->storeEmployeeCourses($employee);
 
         $employee->tipo_ensino_medio_cursado = (int) $this->model->tipoEnsinoMedioCursado;
@@ -595,6 +597,7 @@ class Registro30Import implements RegistroImportInterface
         $arrayCursos = array_filter($this->model->formacaoCurso);
         $arrayInstituicoes = array_filter($this->model->formacaoInstituicao);
         $arrayAnosConclusao = array_filter($this->model->formacaoAnoConclusao);
+        $arrayComponentes = array_filter($this->model->formacaoComponenteCurricular);
 
         if (empty($arrayCursos)) {
             return;
@@ -617,8 +620,36 @@ class Registro30Import implements RegistroImportInterface
                 'course_id' => $degree->getKey(),
                 'completion_year' => $arrayAnosConclusao[$key] ?? null,
                 'college_id' => $institution->getKey(),
+                'discipline_id' => $arrayComponentes[$key] ?? null,
             ]);
         }
+    }
+
+    /**
+     * @param Employee $employee
+     */
+    private function storeEmployeePostgraduate(Employee $employee)
+    {
+        $arrayPostGraduate = [];
+
+        if ($this->model->posGraduacaoEspecializacao) {
+            $arrayPostGraduate[] = PosGraduacao::ESPECIALIZACAO;
+        }
+
+        if ($this->model->posGraduacaoMestrado) {
+            $arrayPostGraduate[] = PosGraduacao::MESTRADO;
+        }
+
+        if ($this->model->posGraduacaoDoutorado) {
+            $arrayPostGraduate[] = PosGraduacao::DOUTORADO;
+        }
+
+        if ($this->model->posGraduacaoNaoPossui) {
+            $arrayPostGraduate[] = PosGraduacao::NAO_POSSUI;
+        }
+
+        $employee->pos_graduacao = $this->getPostgresIntegerArray($arrayPostGraduate);
+        $employee->save();
     }
 
     private function storeEmployeeCourses(Employee $employee)

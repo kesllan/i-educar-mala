@@ -18,7 +18,7 @@ class clsPmieducarServidorAfastamento extends Model
 
     public function __construct($ref_cod_servidor = null, $sequencial = null, $ref_cod_motivo_afastamento = null, $ref_usuario_exc = null, $ref_usuario_cad = null, $data_cadastro = null, $data_exclusao = null, $data_retorno = null, $data_saida = null, $ativo = null, $ref_cod_instituicao = null)
     {
-
+        $db = new clsBanco();
         $this->_schema = 'pmieducar.';
         $this->_tabela = "{$this->_schema}servidor_afastamento";
 
@@ -137,7 +137,6 @@ class clsPmieducarServidorAfastamento extends Model
     {
         if (is_numeric($this->ref_cod_servidor) && is_numeric($this->sequencial) && is_numeric($this->ref_usuario_exc) && is_numeric($this->ref_cod_instituicao)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_cod_motivo_afastamento)) {
@@ -182,7 +181,7 @@ class clsPmieducarServidorAfastamento extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      */
     public function lista($int_ref_cod_servidor = null, $int_sequencial = null, $int_ref_cod_motivo_afastamento = null, $int_ref_usuario_exc = null, $int_ref_usuario_cad = null, $date_data_cadastro_ini = null, $date_data_cadastro_fim = null, $date_data_exclusao_ini = null, $date_data_exclusao_fim = null, $date_data_retorno_ini = null, $date_data_retorno_fim = null, $date_data_saida_ini = null, $date_data_saida_fim = null, $int_ativo = null, $int_ref_cod_instituicao = null)
     {
@@ -288,7 +287,7 @@ class clsPmieducarServidorAfastamento extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -306,7 +305,7 @@ class clsPmieducarServidorAfastamento extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

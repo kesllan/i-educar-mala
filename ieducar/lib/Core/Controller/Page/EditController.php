@@ -12,13 +12,6 @@ abstract class Core_Controller_Page_EditController extends clsCadastro implement
     protected $_formMap = [];
 
     /**
-     * Usada em relatório onde não possui ações cadastrar, atualizar ou excluir
-     *
-     * @var bool
-     */
-    protected $_onlyRead = false;
-
-    /**
      * Determina se "Cadastrar" ou "Atualizar" são ações disponíveis na interface.
      *
      * @var bool
@@ -45,12 +38,12 @@ abstract class Core_Controller_Page_EditController extends clsCadastro implement
      *
      * @var string
      */
-    protected $_nivelAcessoInsuficiente;
+    protected $_nivelAcessoInsuficiente = null;
 
     /**
      * @var clsPermissoes
      */
-    protected $_clsPermissoes;
+    protected $_clsPermissoes = null;
 
     /**
      * Chama o construtor da superclasse para atribuir $tipoacao do $_POST.
@@ -240,6 +233,7 @@ abstract class Core_Controller_Page_EditController extends clsCadastro implement
     /**
      * Setter.
      *
+     * @param clsPermissoes $instance
      *
      * @return Core_Controller_Page_EditController
      */
@@ -391,10 +385,6 @@ abstract class Core_Controller_Page_EditController extends clsCadastro implement
      */
     protected function _save()
     {
-        if ($this->_onlyRead) {
-            return false;
-        }
-
         $data = [];
 
         foreach ($_POST as $key => $val) {

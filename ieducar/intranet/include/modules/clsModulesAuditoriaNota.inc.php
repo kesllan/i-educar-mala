@@ -47,7 +47,6 @@ class clsModulesAuditoriaNota
         $this->_tabela = "{$this->_schema}auditoria";
         $separador = '';
         $valores = '';
-        $campos = '';
 
         if (!is_null($this->stringNotaAntiga) && !is_null($this->stringNotaNova)) {
             $this->operacao = self::OPERACAO_ALTERACAO;
@@ -116,7 +115,9 @@ class clsModulesAuditoriaNota
         //remove o último valor, qual seria uma vírgula
         $stringDados = substr($stringDados, 0, -1);
 
-        return $stringDados . $fimString;
+        $stringDados .= $fimString;
+
+        return $stringDados;
     }
 
     private function montaArrayInformacoes($nota)
@@ -131,16 +132,19 @@ class clsModulesAuditoriaNota
 
         $arrayInformacoes = $this->getInfosMatricula($notaAlunoId);
 
-        return $arrayInformacoes + ['nota' => $nota->notaArredondada,
+        $arrayInformacoes += ['nota' => $nota->notaArredondada,
             'etapa' => $nota->etapa,
             'componenteCurricular' => $componenteCurricular];
+
+        return $arrayInformacoes;
     }
 
     private function getNomeComponenteCurricular($componenteCurricularId)
     {
         $mapper = new ComponenteCurricular_Model_ComponenteDataMapper();
+        $componenteCurricular = $mapper->find($componenteCurricularId)->nome;
 
-        return $mapper->find($componenteCurricularId)->nome;
+        return $componenteCurricular;
     }
 
     private function getInfosMatricula($notaAlunoId)
@@ -183,32 +187,36 @@ class clsModulesAuditoriaNota
     {
         $objInstituicao = new clsPmieducarInstituicao($instituicaoId);
         $detInstituicao = $objInstituicao->detalhe();
+        $nomeInstitucao = $detInstituicao['nm_instituicao'];
 
-        return $detInstituicao['nm_instituicao'];
+        return $nomeInstitucao;
     }
 
     private function getNomeEscola($escolaId)
     {
         $objEscola = new clsPmieducarEscola($escolaId);
         $detEscola = $objEscola->detalhe();
+        $nomeEscola = $detEscola['nome'];
 
-        return $detEscola['nome'];
+        return $nomeEscola;
     }
 
     private function getNomeCurso($cursoId)
     {
         $objCurso = new clsPmieducarCurso($cursoId);
         $detCurso = $objCurso->detalhe();
+        $nomeCurso = $detCurso['nm_curso'];
 
-        return $detCurso['nm_curso'];
+        return $nomeCurso;
     }
 
     private function getNomeSerie($serieId)
     {
         $objSerie = new clsPmieducarSerie($serieId);
         $detSerie = $objSerie->detalhe();
+        $nomeSerie = $detSerie['nm_serie'];
 
-        return $detSerie['nm_serie'];
+        return $nomeSerie;
     }
 
     private function getNomeAluno($alunoId)
@@ -227,8 +235,9 @@ class clsModulesAuditoriaNota
     {
         $objTurma = new clsPmieducarTurma($turmaId);
         $detTurma = $objTurma->detalhe();
+        $nomeTurma = $detTurma['nm_turma'];
 
-        return $detTurma['nm_turma'];
+        return $nomeTurma;
     }
 
     private function getUsuarioAtual()

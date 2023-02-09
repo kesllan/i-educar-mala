@@ -1,8 +1,5 @@
 <?php
 
-use App\Models\LegacyDisciplinaryOccurrenceType;
-use App\Models\LegacyRegistrationDisciplinaryOccurrenceType;
-
 return new class extends clsCadastro {
     /**
      * Referencia pega da session para o idpes do usuario atual
@@ -54,16 +51,8 @@ return new class extends clsCadastro {
         if (is_numeric($this->ref_cod_matricula) &&
             is_numeric($this->ref_cod_tipo_ocorrencia_disciplinar) &&
             is_numeric($this->sequencial)) {
-
-            $registro = LegacyRegistrationDisciplinaryOccurrenceType::query()
-                ->where('ref_cod_matricula', $this->ref_cod_matricula)
-                ->where('ref_cod_tipo_ocorrencia_disciplinar', $this->ref_cod_tipo_ocorrencia_disciplinar)
-                ->where('sequencial', $this->sequencial)
-                ->where('ativo', 1)
-                ->orderBy('cod_ocorrencia_disciplinar', 'DESC')
-                ->first()
-                ?->getAttributes();
-
+            $obj = new clsPmieducarMatriculaOcorrenciaDisciplinar($this->ref_cod_matricula, $this->ref_cod_tipo_ocorrencia_disciplinar, $this->sequencial);
+            $registro = $obj->detalhe();
             if ($registro) {
                 foreach ($registro as $campo => $val) {  // passa todos os valores obtidos no registro para atributos do objeto
                     $this->$campo = $val;
@@ -131,11 +120,15 @@ return new class extends clsCadastro {
         $this->campoData('data_cadastro', 'Data Atual', $this->data_cadastro, true);
         $this->campoHora('hora_cadastro', 'Horas', $this->hora_cadastro, true);
 
-        $opcoes = LegacyDisciplinaryOccurrenceType::query()
-            ->where('ativo', 1)
-            ->orderBy('nm_tipo', 'ASC')
-            ->pluck('nm_tipo', 'cod_tipo_ocorrencia_disciplinar')
-            ->prepend('Selecione', '');
+        $opcoes = ['' => 'Selecione'];
+
+        $objTemp = new clsPmieducarTipoOcorrenciaDisciplinar();
+        $lista = $objTemp->lista(null, null, null, null, null, null, null, null, null, null, 1, $this->ref_cod_instituicao);
+        if (is_array($lista) && count($lista)) {
+            foreach ($lista as $registro) {
+                $opcoes["{$registro['cod_tipo_ocorrencia_disciplinar']}"] = "{$registro['nm_tipo']}";
+            }
+        }
 
         $this->campoLista('ref_cod_tipo_ocorrencia_disciplinar', 'Tipo Ocorrência Disciplinar', $opcoes, $this->ref_cod_tipo_ocorrencia_disciplinar);
 
@@ -165,19 +158,14 @@ return new class extends clsCadastro {
         $detalhe_mat = $obj_ref_cod_matricula->detalhe();
         $this->ref_cod_instituicao = $detalhe_mat['ref_cod_instituicao'];
 
+        $obj = new clsPmieducarMatriculaOcorrenciaDisciplinar($this->ref_cod_matricula, $this->ref_cod_tipo_ocorrencia_disciplinar, null, $this->pessoa_logada, $this->pessoa_logada, $this->observacao, $this->getDataHoraCadastro(), $this->data_exclusao, $this->ativo, $this->visivel_pais);
+        $cod_ocorrencia_disciplinar = $obj->cadastra();
+        if ($cod_ocorrencia_disciplinar) {
+            $ocorrenciaDisciplinar = new clsPmieducarMatriculaOcorrenciaDisciplinar();
+            $ocorrenciaDisciplinar->cod_ocorrencia_disciplinar = $cod_ocorrencia_disciplinar;
 
-        $obj = new LegacyRegistrationDisciplinaryOccurrenceType();
-        $obj->ref_cod_matricula = $this->ref_cod_matricula;
-        $obj->ref_cod_tipo_ocorrencia_disciplinar = $this->ref_cod_tipo_ocorrencia_disciplinar;
-        $obj->ref_usuario_exc = $this->pessoa_logada;
-        $obj->ref_usuario_cad = $this->pessoa_logada;
-        $obj->observacao = $this->observacao;
-        $obj->visivel_pais = $this->visivel_pais;
-        $obj->data_cadastro = $this->getDataHoraCadastro();
-
-        if ($obj->save()) {
             if (($this->visivel_pais) && ($this->possuiConfiguracaoNovoEducacao())) {
-                $resposta = json_decode($this->enviaOcorrenciaNovoEducacao($obj->id));
+                $resposta = json_decode($this->enviaOcorrenciaNovoEducacao($cod_ocorrencia_disciplinar));
 
                 if (is_array($resposta->errors)) {
                     echo 'Erro ao enviar ocorrencia disciplinar ao sistema externo: ' . $resposta->errors[0];
@@ -196,6 +184,7 @@ return new class extends clsCadastro {
         }
 
         $this->mensagem = 'Cadastro não realizado.<br>';
+
         return false;
     }
 
@@ -204,21 +193,20 @@ return new class extends clsCadastro {
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(578, $this->pessoa_logada, 7, 'educar_matricula_ocorrencia_disciplinar_lst.php');
 
+        $ocorrenciaDisciplinar = new clsPmieducarMatriculaOcorrenciaDisciplinar();
+        $ocorrenciaDisciplinar->cod_ocorrencia_disciplinar = $this->cod_ocorrencia_disciplinar;
+
         $this->visivel_pais = is_null($this->visivel_pais) ? 0 : 1;
+
         $voltaListagem = is_numeric($this->ref_cod_matricula);
+
         $this->ref_cod_matricula = is_numeric($this->ref_cod_matricula) ? $this->ref_cod_matricula : $this->getRequest()->matricula_id;
 
-        $obj = LegacyRegistrationDisciplinaryOccurrenceType::find($this->cod_ocorrencia_disciplinar);
-        $obj->ref_cod_matricula = $this->ref_cod_matricula;
-        $obj->ref_cod_tipo_ocorrencia_disciplinar = $this->ref_cod_tipo_ocorrencia_disciplinar;
-        $obj->ref_usuario_exc = $this->pessoa_logada;
-        $obj->ref_usuario_cad = $this->pessoa_logada;
-        $obj->observacao = $this->observacao;
-        $obj->visivel_pais = $this->visivel_pais;
-        $obj->data_cadastro = $this->getDataHoraCadastro();
+        $obj = new clsPmieducarMatriculaOcorrenciaDisciplinar($this->ref_cod_matricula, $this->ref_cod_tipo_ocorrencia_disciplinar, $this->sequencial, $this->pessoa_logada, $this->pessoa_logada, $this->observacao, $this->getDataHoraCadastro(), $this->data_exclusao, $this->ativo, $this->visivel_pais);
 
-        if ($obj->save()) {
-            $this->mensagem = 'Edição efetuada com sucesso.<br>';
+        $editou = $obj->edita();
+        if ($editou) {
+            $this->mensagem .= 'Edição efetuada com sucesso.<br>';
             if ($voltaListagem) {
                 $this->simpleRedirect("educar_matricula_ocorrencia_disciplinar_lst.php?ref_cod_matricula={$this->ref_cod_matricula}");
             } else {
@@ -227,6 +215,7 @@ return new class extends clsCadastro {
         }
 
         $this->mensagem = 'Edição não realizada.<br>';
+
         return false;
     }
 
@@ -235,16 +224,19 @@ return new class extends clsCadastro {
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_excluir(578, $this->pessoa_logada, 7, 'educar_matricula_ocorrencia_disciplinar_lst.php');
 
-        $obj = LegacyRegistrationDisciplinaryOccurrenceType::find($this->cod_ocorrencia_disciplinar);
-        $obj->ativo = 0;
-        $obj->ref_usuario_exc = $this->pessoa_logada;
+        $ocorrenciaDisciplinar = new clsPmieducarMatriculaOcorrenciaDisciplinar();
+        $ocorrenciaDisciplinar->cod_ocorrencia_disciplinar = $this->cod_ocorrencia_disciplinar;
 
-        if ($obj->save()) {
-            $this->mensagem = 'Exclusão efetuada com sucesso.<br>';
+        $this->data_cadastro = Portabilis_Date_Utils::brToPgSQL($this->data_cadastro);
+        $obj = new clsPmieducarMatriculaOcorrenciaDisciplinar($this->ref_cod_matricula, $this->ref_cod_tipo_ocorrencia_disciplinar, $this->sequencial, $this->pessoa_logada, $this->pessoa_logada, $this->observacao, $this->data_cadastro, $this->data_exclusao, 0);
+        $excluiu = $obj->excluir();
+        if ($excluiu) {
+            $this->mensagem .= 'Exclusão efetuada com sucesso.<br>';
             $this->simpleRedirect("educar_matricula_ocorrencia_disciplinar_lst.php?ref_cod_matricula={$this->ref_cod_matricula}");
         }
 
         $this->mensagem = 'Exclusão não realizada.<br>';
+
         return false;
     }
 
@@ -264,7 +256,9 @@ return new class extends clsCadastro {
 
         $cod_escola = $det_tmp['ref_ref_cod_escola'];
 
-        $obj_tmp = LegacyDisciplinaryOccurrenceType::find($this->ref_cod_tipo_ocorrencia_disciplinar)?->getAttributes();
+        $obj_tmp = new clsPmieducarTipoOcorrenciaDisciplinar($this->ref_cod_tipo_ocorrencia_disciplinar);
+        $det_tmp = $obj_tmp->detalhe();
+
         $tipo_ocorrencia = $det_tmp['nm_tipo'];
 
         $params = [

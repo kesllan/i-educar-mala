@@ -77,7 +77,7 @@ class clsPmieducarHistoricoDisciplinas extends Model
         }
 
         if (is_numeric($carga_horaria_disciplina)) {
-            $this->carga_horaria_disciplina = (int)$carga_horaria_disciplina;
+            $this->carga_horaria_disciplina = $carga_horaria_disciplina;
         }
 
         if (is_bool($dependencia)) {
@@ -181,8 +181,8 @@ class clsPmieducarHistoricoDisciplinas extends Model
     {
         if (is_numeric($this->sequencial) && is_numeric($this->ref_ref_cod_aluno) && is_numeric($this->ref_sequencial)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
+            $gruda = '';
 
             if (is_string($this->nm_disciplina)) {
                 $disciplina = $db->escapeString($this->nm_disciplina);
@@ -233,7 +233,7 @@ class clsPmieducarHistoricoDisciplinas extends Model
     /**
      * Retorna uma lista filtrados de acordo com os parametros
      *
-     * @return array|false
+     * @return array
      *
      * @throws Exception
      */
@@ -389,8 +389,9 @@ class clsPmieducarHistoricoDisciplinas extends Model
     {
         if (is_numeric($ref_cod_aluno)) {
             $db = new clsBanco();
+            $sequencial = $db->campoUnico("SELECT COALESCE( MAX(sequencial), 0 ) FROM {$this->_tabela} WHERE ref_cod_aluno = {$ref_cod_aluno}");
 
-            return $db->campoUnico("SELECT COALESCE( MAX(sequencial), 0 ) FROM {$this->_tabela} WHERE ref_cod_aluno = {$ref_cod_aluno}");
+            return $sequencial;
         }
 
         return false;

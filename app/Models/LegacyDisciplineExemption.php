@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\Builders\LegacyDisciplineExemptionBuilder;
-use App\Models\Concerns\SoftDeletes\LegacySoftDeletes;
-use App\Traits\HasLegacyUserAction;
+use App\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -15,21 +14,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property LegacyRegistration $registration
  * @property integer            cod_dispensa
  */
-class LegacyDisciplineExemption extends LegacyModel
+class LegacyDisciplineExemption extends Model
 {
-    use HasLegacyUserAction;
-    use LegacySoftDeletes;
-
-    public const CREATED_AT = 'data_cadastro';
-
     /**
      * @var string
      */
     protected $table = 'pmieducar.dispensa_disciplina';
 
     protected $primaryKey = 'cod_dispensa';
-
-    protected string $builder = LegacyDisciplineExemptionBuilder::class;
 
     /**
      * @var array
@@ -39,38 +31,34 @@ class LegacyDisciplineExemption extends LegacyModel
         'ref_cod_disciplina',
         'ref_cod_escola',
         'ref_cod_serie',
+        'ref_usuario_exc',
+        'ref_usuario_cad',
         'ref_cod_tipo_dispensa',
+        'data_cadastro',
         'data_exclusao',
+        'ativo',
         'observacao',
         'cod_dispensa',
-        'batch'
-    ];
-
-    public array $legacy = [
-        'id' => 'cod_dispensa',
-        'registration_id' => 'ref_cod_matricula',
-        'discipline_id' => 'ref_cod_disciplina',
-        'school_id' => 'ref_cod_escola',
-        'grade_id' => 'ref_cod_serie',
-        'exemption_type_id' => 'ref_cod_tipo_dispensa',
-        'observation' => 'observacao',
-        'created_at' => 'data_cadastro',
-        'deleted_at' => 'data_exclusao',
-        'active' => 'ativo'
+        'updated_at',
     ];
 
     protected $dates = [
-        'data_exclusao'
+        'data_cadastro',
+        'data_exclusao',
+        'updated_at'
     ];
 
-    protected $casts = ['updated_at' => 'date:d/m/Y H:i:s'];
+    /**
+     * @var bool
+     */
+    public $timestamps = false;
 
     /**
      * Relação com a matrícula.
      *
      * @return BelongsTo
      */
-    public function registration(): BelongsTo
+    public function registration()
     {
         return $this->belongsTo(LegacyRegistration::class, 'ref_cod_matricula');
     }
@@ -78,7 +66,7 @@ class LegacyDisciplineExemption extends LegacyModel
     /**
      * @return BelongsTo
      */
-    public function discipline(): BelongsTo
+    public function discipline()
     {
         return $this->belongsTo(LegacyDiscipline::class, 'ref_cod_disciplina');
     }
@@ -86,7 +74,7 @@ class LegacyDisciplineExemption extends LegacyModel
     /**
      * @return BelongsTo
      */
-    public function type(): BelongsTo
+    public function type()
     {
         return $this->belongsTo(LegacyExemptionType::class, 'ref_cod_tipo_dispensa');
     }
@@ -94,14 +82,14 @@ class LegacyDisciplineExemption extends LegacyModel
     /**
      * @return HasMany
      */
-    public function stages(): HasMany
+    public function stages()
     {
         return $this->hasMany(LegacyExemptionStage::class, 'ref_cod_dispensa', 'cod_dispensa');
     }
 
-    public function createdBy(): BelongsTo
+    public function createdBy()
     {
-        return $this->belongsTo(LegacyUser::class, 'ref_usuario_cad');
+        return $this->belongsTo(User::class, 'ref_usuario_cad');
     }
 
     /**
@@ -109,12 +97,12 @@ class LegacyDisciplineExemption extends LegacyModel
      *
      * @return Builder
      */
-    public function scopeActive($query): Builder
+    public function scopeActive($query)
     {
         return $query->where('ativo', 1);
     }
 
-    public function getDateFormat(): string
+    public function getDateFormat()
     {
         return 'Y-m-d H:i:s.u';
     }

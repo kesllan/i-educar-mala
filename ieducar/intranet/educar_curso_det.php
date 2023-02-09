@@ -1,13 +1,8 @@
 <?php
 
-use App\Models\LegacyCourse;
-use App\Models\LegacyEducationLevel;
-use App\Models\LegacyEducationType;
-use App\Models\LegacyQualificationCourse;
-use App\Models\LegacyRegimeType;
-
 return new class extends clsDetalhe {
     public $titulo;
+
     public $cod_curso;
     public $ref_usuario_cad;
     public $ref_cod_tipo_regime;
@@ -46,23 +41,17 @@ return new class extends clsDetalhe {
         $obj_instituicao_det = $obj_instituicao->detalhe();
         $registro['ref_cod_instituicao'] = $obj_instituicao_det['nm_instituicao'];
 
-        $nm_tipo = LegacyRegimeType::query()
-            ->select('nm_tipo')
-            ->where(column: 'cod_tipo_regime', operator: $registro['ref_cod_tipo_regime'])
-            ->first()?->nm_tipo;
-        $registro['ref_cod_tipo_regime'] = $nm_tipo;
+        $obj_ref_cod_tipo_regime = new clsPmieducarTipoRegime($registro['ref_cod_tipo_regime']);
+        $det_ref_cod_tipo_regime = $obj_ref_cod_tipo_regime->detalhe();
+        $registro['ref_cod_tipo_regime'] = $det_ref_cod_tipo_regime['nm_tipo'];
 
-        $nm_nivel = LegacyEducationLevel::query()
-            ->select('nm_nivel')
-            ->where(column: 'cod_nivel_ensino', operator: $registro['ref_cod_nivel_ensino'])
-            ->first()?->nm_nivel;
-        $registro['ref_cod_nivel_ensino'] = $nm_nivel;
+        $obj_ref_cod_nivel_ensino = new clsPmieducarNivelEnsino($registro['ref_cod_nivel_ensino']);
+        $det_ref_cod_nivel_ensino = $obj_ref_cod_nivel_ensino->detalhe();
+        $registro['ref_cod_nivel_ensino'] = $det_ref_cod_nivel_ensino['nm_nivel'];
 
-        $nm_tipo = LegacyEducationType::query()
-            ->select('nm_tipo')
-            ->where(column: 'cod_tipo_ensino', operator: $registro['ref_cod_tipo_ensino'])
-            ->first()?->nm_tipo;
-        $registro['ref_cod_tipo_ensino'] = $nm_tipo;
+        $obj_ref_cod_tipo_ensino = new clsPmieducarTipoEnsino($registro['ref_cod_tipo_ensino']);
+        $det_ref_cod_tipo_ensino = $obj_ref_cod_tipo_ensino->detalhe();
+        $registro['ref_cod_tipo_ensino'] = $det_ref_cod_tipo_ensino['nm_tipo'];
 
         $obj_permissoes = new clsPermissoes();
         $nivel_usuario = $obj_permissoes->nivel_acesso($this->pessoa_logada);
@@ -98,12 +87,12 @@ return new class extends clsDetalhe {
         }
 
         if ($registro['hora_falta']) {
-            $registro['hora_falta'] = number_format(num: $registro['hora_falta'], decimals: 2, decimal_separator: ',', thousands_separator: '.');
+            $registro['hora_falta'] = number_format($registro['hora_falta'], 2, ',', '.');
             $this->addDetalhe(['Hora/Falta', $registro['hora_falta']]);
         }
 
         if ($registro['carga_horaria']) {
-            $registro['carga_horaria'] = number_format(num: $registro['carga_horaria'], decimals: 2, decimal_separator: ',', thousands_separator: '.');
+            $registro['carga_horaria'] = number_format($registro['carga_horaria'], 2, ',', '.');
             $this->addDetalhe(['Carga Horária', $registro['carga_horaria']]);
         }
 
@@ -111,10 +100,10 @@ return new class extends clsDetalhe {
             $this->addDetalhe(['Ato Poder P&uacute;blico', $registro['ato_poder_publico']]);
         }
 
-        $curso = LegacyCourse::find($this->cod_curso);
-        $lst = $curso->qualifications?->toArray();
+        $obj = new clsPmieducarHabilitacaoCurso(null, $this->cod_curso);
+        $lst = $obj->lista(null, $this->cod_curso);
 
-        if (!empty($lst)) {
+        if ($lst) {
             $tabela = '<TABLE>
                  <TR align=center>
                      <TD bgcolor=#ccdce6><B>Nome</B></TD>
@@ -128,7 +117,9 @@ return new class extends clsDetalhe {
                     $color = ' bgcolor=#FFFFFF ';
                 }
 
-                $habilitacao = $valor['nm_tipo'];
+                $obj = new clsPmieducarHabilitacao($valor['ref_cod_habilitacao']);
+                $obj_habilitacao = $obj->detalhe();
+                $habilitacao = $obj_habilitacao['nm_tipo'];
 
                 $tabela .= "<TR>
                   <TD {$color} align=left>{$habilitacao}</TD>
@@ -161,7 +152,7 @@ return new class extends clsDetalhe {
             $this->addDetalhe(['P&uacute;blico Alvo', $registro['publico_alvo']]);
         }
 
-        if ($obj_permissoes->permissao_cadastra(int_processo_ap: 566, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 3)) {
+        if ($obj_permissoes->permissao_cadastra(566, $this->pessoa_logada, 3)) {
             $this->url_novo = 'educar_curso_cad.php';
             $this->url_editar = "educar_curso_cad.php?cod_curso={$registro['cod_curso']}";
         }
@@ -169,9 +160,9 @@ return new class extends clsDetalhe {
         $this->url_cancelar = 'educar_curso_lst.php';
         $this->largura = '100%';
 
-        $this->breadcrumb(currentPage: 'Detalhe do curso', breadcrumbs: [
-            url('intranet/educar_index.php') => 'Escola',
-        ]);
+        $this->breadcrumb('Detalhe do curso', [
+        url('intranet/educar_index.php') => 'Escola',
+    ]);
     }
 
     public function Formular()

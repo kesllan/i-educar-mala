@@ -7,7 +7,7 @@ abstract class CoreExt_View_Abstract implements \Stringable
      *
      * @var string
      */
-    protected $_contents;
+    protected $_contents = null;
 
     /**
      * Setter.
@@ -37,6 +37,8 @@ abstract class CoreExt_View_Abstract implements \Stringable
      * Implementação do método mágico __toString(). Retorna o valor de $contents.
      *
      * @link http://php.net/manual/en/language.oop5.magic.php#language.oop5.magic.tostring
+     *
+     * @return string
      */
     public function __toString(): string
     {

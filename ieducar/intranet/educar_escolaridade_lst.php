@@ -6,7 +6,7 @@ return new class extends clsListagem {
      *
      * @var int
      */
-    public $pessoa_logada;
+    public $pessoa_logada = null;
 
     /**
      * Título no topo da página

@@ -227,8 +227,8 @@ class clsPmieducarCandidatoReservaVaga extends Model
     {
         if (is_numeric($this->cod_candidato_reserva_vaga)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
+            $gruda = '';
             $campos = '';
 
             if (is_numeric($this->ano_letivo)) {
@@ -307,7 +307,7 @@ class clsPmieducarCandidatoReservaVaga extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $ano_letivo = null,
@@ -441,7 +441,7 @@ class clsPmieducarCandidatoReservaVaga extends Model
     /**
      * Retorna um array com os dados de um registro
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -517,7 +517,7 @@ class clsPmieducarCandidatoReservaVaga extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

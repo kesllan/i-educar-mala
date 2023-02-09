@@ -15,15 +15,13 @@ class clsPmieducarMatriculaTurma extends Model
     public $sequencial;
     public $data_enturmacao;
     public $sequencial_fechamento;
+    public $removerSequencial;
+    public $reabrirMatricula;
     public $etapa_educacenso;
     public $turma_unificada;
+    public $remanejado;
     public $turno_id;
     public $tipo_atendimento = false;
-    public $transferido = false;
-    public $remanejado = false;
-    public $reclassificado = false;
-    public $falecido = false;
-    public $abandono = false;
 
     public function __construct(
         $ref_cod_matricula = null,
@@ -36,6 +34,8 @@ class clsPmieducarMatriculaTurma extends Model
         $ref_cod_turma_transf = null,
         $sequencial = null,
         $data_enturmacao = null,
+        $removerSequencial = false,
+        $reabrirMatricula = false,
         $remanejado = false
     ) {
         $this->_schema = 'pmieducar.';
@@ -170,7 +170,7 @@ class clsPmieducarMatriculaTurma extends Model
 
             $db->Consulta("INSERT INTO {$this->_tabela} ($campos) VALUES ($valores)");
 
-            $this->detalhe();
+            $detalhe = $this->detalhe();
 
             return true;
         }
@@ -188,7 +188,6 @@ class clsPmieducarMatriculaTurma extends Model
         if (is_numeric($this->ref_cod_matricula) && is_numeric($this->ref_cod_turma) &&
             is_numeric($this->ref_usuario_exc) && is_numeric($this->sequencial)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             $gruda = '';
@@ -231,6 +230,17 @@ class clsPmieducarMatriculaTurma extends Model
             if (is_numeric($this->ativo)) {
                 $set .= "{$gruda}ativo = '{$this->ativo}'";
                 $gruda = ', ';
+                if ($this->ativo == 1) {
+                    $set .= "{$gruda}remanejado = null, transferido = null";
+                    $gruda = ', ';
+                }
+            }
+
+            if (!$this->ativo) {
+                if ($this->remanejado) {
+                    $set .= "{$gruda}remanejado = true";
+                    $gruda = ', ';
+                }
             }
 
             if (is_numeric($this->ref_cod_turma_transf)) {
@@ -243,49 +253,33 @@ class clsPmieducarMatriculaTurma extends Model
                 $gruda = ', ';
             }
 
+            if ($this->reabrirMatricula) {
+                $det = $this->detalhe();
+                $this->ref_usuario_cad = $det['ref_usuario_cad'];
+
+                return $this->cadastra();
+            }
+
+            if ($this->removerSequencial) {
+                $sequencialEnturmacao = new SequencialEnturmacao($this->ref_cod_matricula, $this->ref_cod_turma, $this->data_enturmacao);
+                $this->sequencial_fechamento = $sequencialEnturmacao->ordenaSequencialExcluiMatricula();
+            }
+
+            // FIXME
+            // Este trecho de código não é utilizado na atualização do registro, ou
+            // seja, não serve para nada. Verificar o impacto ao corrigi-lo.
+
+            if (is_numeric($this->sequencial_fechamento)) {
+                $campos .= "{$gruda}sequencial_fechamento";
+                $valores .= "{$gruda}'{$this->sequencial_fechamento}'";
+                $gruda = ', ';
+            }
+
             if (is_string($this->turno_id) && $this->turno_id == 0) {
                 $set .= "{$gruda}turno_id = NULL";
                 $gruda = ', ';
             } elseif (is_string($this->turno_id) && !empty($this->turno_id)) {
                 $set .= "{$gruda}turno_id = '{$this->turno_id}'";
-                $gruda = ', ';
-            }
-
-            if (is_bool($this->transferido)) {
-                $transferido = $this->transferido ? 'true' : 'false';
-                if ((int)$this->ativo === 1) {
-                    $transferido = 'false';
-                }
-
-                $set .= "{$gruda}transferido = '$transferido'";
-                $gruda = ', ';
-            }
-
-            if (is_bool($this->remanejado)) {
-                $remanejado = $this->remanejado ? 'true' : 'false';
-                if ((int)$this->ativo === 1) {
-                    $remanejado = 'false';
-                }
-
-                $set .= "{$gruda}remanejado = '$remanejado'";
-                $gruda = ', ';
-            }
-
-            if (is_bool($this->reclassificado)) {
-                $reclassificado = $this->reclassificado ? 'true' : 'false';
-                $set .= "{$gruda}reclassificado = '$reclassificado'";
-                $gruda = ', ';
-            }
-
-            if (is_bool($this->falecido)) {
-                $falecido = $this->falecido ? 'true' : 'false';
-                $set .= "{$gruda}falecido = '$falecido'";
-                $gruda = ', ';
-            }
-
-            if (is_bool($this->abandono)) {
-                $abandono = $this->abandono ? 'true' : 'false';
-                $set .= "{$gruda}abandono = '$abandono'";
                 $gruda = ', ';
             }
 
@@ -298,7 +292,7 @@ class clsPmieducarMatriculaTurma extends Model
             }
 
             if ($set) {
-                $this->detalhe();
+                $detalheAntigo = $this->detalhe();
                 $db->Consulta("UPDATE {$this->_tabela} SET $set WHERE ref_cod_matricula = '{$this->ref_cod_matricula}' AND ref_cod_turma = '{$this->ref_cod_turma}' and sequencial = '$this->sequencial' ");
 
                 return true;
@@ -311,7 +305,7 @@ class clsPmieducarMatriculaTurma extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista(
         $int_ref_cod_matricula = null,
@@ -676,6 +670,176 @@ class clsPmieducarMatriculaTurma extends Model
         return false;
     }
 
+    public function lista2(
+        $int_ref_cod_matricula = null,
+        $int_ref_cod_turma = null,
+        $int_ref_usuario_exc = null,
+        $int_ref_usuario_cad = null,
+        $date_data_cadastro_ini = null,
+        $date_data_cadastro_fim = null,
+        $date_data_exclusao_ini = null,
+        $date_data_exclusao_fim = null,
+        $int_ativo = null,
+        $int_ref_cod_serie = null,
+        $int_ref_cod_curso = null,
+        $int_ref_cod_escola = null,
+        $int_ref_cod_instituicao = null,
+        $int_ref_cod_aluno = null,
+        $em_andamento = true,
+        $mes = null,
+        $aprovado = null,
+        $mes_menor_que = null,
+        $int_sequencial = null,
+        $int_ano_matricula = null
+    ) {
+        $sql = "SELECT {$this->_campos_lista}, m.ref_ref_cod_serie, m.ref_cod_curso, m.ref_ref_cod_escola, c.ref_cod_instituicao, i.nm_instituicao, m.ref_cod_aluno,t.nm_turma,s.nm_serie,c.nm_curso FROM {$this->_tabela} mt, {$this->_schema}matricula m, {$this->_schema}curso c, {$this->_schema}turma t left outer join {$this->_schema}serie s on (t.ref_ref_cod_serie = s.cod_serie), {$this->_schema}instituicao i";
+        $filtros = '';
+
+        $whereAnd = ' WHERE mt.ref_cod_matricula = m.cod_matricula AND m.ref_cod_curso = c.cod_curso AND mt.ref_cod_turma = t.cod_turma AND c.ref_cod_instituicao = i.cod_instituicao AND';
+
+        if (is_numeric($int_ref_cod_matricula)) {
+            $filtros .= "{$whereAnd} mt.ref_cod_matricula = '{$int_ref_cod_matricula}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_ref_cod_turma)) {
+            $filtros .= "{$whereAnd} mt.ref_cod_turma = '{$int_ref_cod_turma}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_ref_usuario_exc)) {
+            $filtros .= "{$whereAnd} mt.ref_usuario_exc = '{$int_ref_usuario_exc}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_ref_usuario_cad)) {
+            $filtros .= "{$whereAnd} mt.ref_usuario_cad = '{$int_ref_usuario_cad}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_string($date_data_cadastro_ini)) {
+            $filtros .= "{$whereAnd} mt.data_cadastro >= '{$date_data_cadastro_ini}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_string($date_data_cadastro_fim)) {
+            $filtros .= "{$whereAnd} mt.data_cadastro <= '{$date_data_cadastro_fim}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_string($date_data_exclusao_ini)) {
+            $filtros .= "{$whereAnd} mt.data_exclusao >= '{$date_data_exclusao_ini}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_string($date_data_exclusao_fim)) {
+            $filtros .= "{$whereAnd} mt.data_exclusao <= '{$date_data_exclusao_fim}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_null($int_ativo) || $int_ativo) {
+            $filtros .= "{$whereAnd} mt.ativo = '1'";
+            $whereAnd = ' AND ';
+        } else {
+            $filtros .= "{$whereAnd} mt.ativo = '0'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_ref_cod_serie)) {
+            $filtros .= "{$whereAnd} m.ref_ref_cod_serie = '{$int_ref_cod_serie}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_ref_cod_curso)) {
+            $filtros .= "{$whereAnd} m.ref_cod_curso = '{$int_ref_cod_curso}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_ref_cod_escola)) {
+            $filtros .= "{$whereAnd} m.ref_ref_cod_escola = '{$int_ref_cod_escola}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_ref_cod_instituicao)) {
+            $filtros .= "{$whereAnd} c.ref_cod_instituicao = '{$int_ref_cod_instituicao}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_ref_cod_aluno)) {
+            $filtros .= "{$whereAnd} m.ref_cod_aluno = '{$int_ref_cod_aluno}'";
+            $whereAnd = ' AND ';
+        }
+
+        if (!is_numeric($aprovado)) {
+            if ($em_andamento == true) {
+                $filtros .= "{$whereAnd} (m.aprovado = '3'";
+                $whereAnd = ' OR ';
+                $filtros .= "{$whereAnd} m.aprovado = '7')";
+                $whereAnd = ' AND ';
+            }
+        }
+
+        if ($int_ano_matricula) {
+            $int_ano_matricula = (int) $int_ano_matricula;
+            $filtros .= "{$whereAnd} (to_char(m.ano,'YYYY')::int = '$int_ano_matricula')";
+            $whereAnd = ' AND ';
+        }
+
+        if ($mes) {
+            $mes = (int) $mes;
+            $filtros .= "{$whereAnd} (to_char(mt.data_cadastro,'MM')::int = '$mes'
+                      OR to_char(mt.data_exclusao,'MM')::int = '$mes')";
+            $whereAnd = ' AND ';
+        }
+
+        if ($mes_menor_que) {
+            $mes_menor_que = (int) $mes_menor_que;
+            $filtros .= "{$whereAnd} (to_char(mt.data_cadastro,'MM')::int < '$mes_menor_que'
+                      OR to_char(mt.data_exclusao,'MM')::int < '$mes_menor_que')";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($aprovado)) {
+            $filtros .= "{$whereAnd} m.aprovado = '$aprovado'";
+            $whereAnd = ' AND ';
+        }
+
+        if (is_numeric($int_sequencial)) {
+            $filtros .= "{$whereAnd} mt.sequencial = '{$int_sequencial}'";
+            $whereAnd = ' AND ';
+        }
+
+        $db = new clsBanco();
+        $countCampos = count(explode(',', $this->_campos_lista));
+        $resultado = [];
+
+        $sql .= $filtros . $this->getOrderby() . $this->getLimite();
+
+        $this->_total = $db->CampoUnico("SELECT COUNT(0) FROM {$this->_tabela} mt, {$this->_schema}matricula m, {$this->_schema}curso c, {$this->_schema}turma t left outer join {$this->_schema}serie s on (t.ref_ref_cod_serie = s.cod_serie), {$this->_schema}instituicao i {$filtros}");
+
+        $db->Consulta($sql);
+
+        if ($countCampos > 1) {
+            while ($db->ProximoRegistro()) {
+                $tupla = $db->Tupla();
+
+                $tupla['_total'] = $this->_total;
+                $resultado[] = $tupla;
+            }
+        } else {
+            while ($db->ProximoRegistro()) {
+                $tupla = $db->Tupla();
+                $resultado[] = $tupla[$this->_campos_lista];
+            }
+        }
+
+        if (count($resultado)) {
+            return $resultado;
+        }
+
+        return false;
+    }
+
     public function lista3(
         $int_ref_cod_matricula = null,
         $int_ref_cod_turma = null,
@@ -697,7 +861,7 @@ class clsPmieducarMatriculaTurma extends Model
         $int_matricula_ativo = null,
         $int_semestre = null
     ) {
-        $sql = "SELECT {$this->_campos_lista}, c.nm_curso, s.nm_serie, t.nm_turma, c.ref_cod_instituicao, m.ref_ref_cod_escola, m.ref_cod_curso, m.ref_ref_cod_serie, m.ref_cod_aluno, p.nome,a.tipo_responsavel,f.data_nasc FROM {$this->_tabela} mt, {$this->_schema}matricula m, {$this->_schema}curso c, {$this->_schema}serie s, {$this->_schema}turma t, {$this->_schema}aluno a, cadastro.pessoa p, cadastro.fisica f ";
+        $sql = "SELECT {$this->_campos_lista}, c.nm_curso, s.nm_serie, t.nm_turma, c.ref_cod_instituicao, m.ref_ref_cod_escola, m.ref_cod_curso, m.ref_ref_cod_serie, m.ref_cod_aluno, p.nome,a.tipo_responsavel,f.data_nasc FROM {$this->_tabela} mt, {$this->_schema}matricula m, {$this->_schema}curso c, {$this->_schema}serie s, {$this->_schema}turma t, {$this->_schema}aluno a, cadastro.pessoa p, cadastro.fisica f {$join}";
         $filtros = '';
 
         $whereAnd = ' WHERE mt.ref_cod_matricula = m.cod_matricula AND m.ref_cod_curso = c.cod_curso AND t.cod_turma = mt.ref_cod_turma AND s.cod_serie = m.ref_ref_cod_serie AND a.cod_aluno = m.ref_cod_aluno AND p.idpes = a.ref_idpes AND p.idpes = f.idpes AND';
@@ -765,6 +929,11 @@ class clsPmieducarMatriculaTurma extends Model
             $whereAnd = ' AND ';
         }
 
+        if (is_numeric($int_ref_cod_instituicao)) {
+            $filtros .= "{$whereAnd} c.ref_cod_instituicao = '{$int_ref_cod_instituicao}'";
+            $whereAnd = ' AND ';
+        }
+
         if (is_numeric($int_ref_cod_aluno)) {
             $filtros .= "{$whereAnd} m.ref_cod_aluno = '{$int_ref_cod_aluno}'";
             $whereAnd = ' AND ';
@@ -823,7 +992,7 @@ class clsPmieducarMatriculaTurma extends Model
 
         $sql .= $filtros . $this->getOrderby() . $this->getLimite();
 
-        $this->_total = $db->CampoUnico("SELECT COUNT(0) FROM {$this->_tabela} mt, {$this->_schema}matricula m, {$this->_schema}curso c, {$this->_schema}serie s, {$this->_schema}turma t, {$this->_schema}aluno a, cadastro.pessoa p, cadastro.fisica f {$filtros}");
+        $this->_total = $db->CampoUnico("SELECT COUNT(0) FROM {$this->_tabela} mt, {$this->_schema}matricula m, {$this->_schema}curso c, {$this->_schema}serie s, {$this->_schema}turma t, {$this->_schema}aluno a, cadastro.pessoa p, cadastro.fisica f {$join} {$filtros}");
         $db->Consulta($sql);
 
         if ($countCampos > 1) {
@@ -968,7 +1137,7 @@ class clsPmieducarMatriculaTurma extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -987,7 +1156,7 @@ class clsPmieducarMatriculaTurma extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {
@@ -1042,11 +1211,85 @@ class clsPmieducarMatriculaTurma extends Model
     {
         if (is_numeric($this->ref_cod_matricula) && is_numeric($this->ref_cod_turma)) {
             $db = new clsBanco();
+            $max = $db->CampoUnico("SELECT COALESCE(MAX(sequencial),0) + 1 AS MAX FROM {$this->_tabela} WHERE ref_cod_matricula = '{$this->ref_cod_matricula}'");
 
             //removido filtro pois tornou-se possivel enturmar uma matricula em mais de uma turma
             //AND ref_cod_turma = '{$this->ref_cod_turma}'");
 
-            return $db->CampoUnico("SELECT COALESCE(MAX(sequencial),0) + 1 AS MAX FROM {$this->_tabela} WHERE ref_cod_matricula = '{$this->ref_cod_matricula}'");
+            return $max;
+        }
+
+        return false;
+    }
+
+    public function alunosNaoEnturmados(
+        $ref_cod_escola = null,
+        $ref_cod_serie = null,
+        $ref_cod_curso = null,
+        $ano = null
+    ) {
+        if ((is_numeric($ref_cod_escola) && is_numeric($ref_cod_serie)) ||
+            is_numeric($ref_cod_curso)) {
+            $db = new clsBanco();
+
+            $sql = "SELECT
+            m.cod_matricula
+          FROM
+            pmieducar.matricula m
+          WHERE
+            m.cod_matricula NOT IN
+            (
+              SELECT
+                ref_cod_matricula
+              FROM
+                {$this->_tabela} mt,
+                   pmieducar.turma t
+              WHERE
+                t.cod_turma = mt.ref_cod_turma
+                AND t.ref_ref_cod_escola = '{$ref_cod_escola}'
+                AND mt.ativo = '1'
+                AND t.ativo  = '1'";
+
+            if ($ref_cod_curso) {
+                $sql .= ' AND m.ref_cod_curso = t.ref_cod_curso  ';
+            }
+
+            if ($ref_cod_serie) {
+                $sql .= ' AND m.ref_ref_cod_serie = t.ref_ref_cod_serie';
+            }
+
+            $sql .= ')
+          AND m.ativo = \'1\'
+          AND m.ultima_matricula = \'1\'
+          AND
+          (
+            m.aprovado = \'1\'
+            OR m.aprovado = \'2\'
+            OR m.aprovado = \'3\'
+          )';
+
+            if ($ref_cod_curso) {
+                $sql .= " AND m.ref_cod_curso = '{$ref_cod_curso}'";
+            }
+
+            if ($ref_cod_escola && $ref_cod_serie) {
+                $sql .= " AND m.ref_ref_cod_serie = '{$ref_cod_serie}'
+            AND m.ref_ref_cod_escola = '{$ref_cod_escola}'";
+            }
+
+            if (is_numeric($ano)) {
+                $sql .= " AND m.ano = {$ano}";
+            }
+
+            $db->Consulta($sql);
+
+            $resultado = [];
+            while ($db->ProximoRegistro()) {
+                $tupla = $db->Tupla();
+                $resultado[] = $tupla['cod_matricula'];
+            }
+
+            return $resultado;
         }
 
         return false;
@@ -1195,8 +1438,13 @@ class clsPmieducarMatriculaTurma extends Model
         if ($this->ref_cod_matricula && $this->sequencial) {
             $dataBaseTransferencia = $this->getDataBaseTransferencia();
             $data = $data ? $data : date('Y-m-d');
-            $db = new clsBanco();
-            $db->CampoUnico("UPDATE pmieducar.matricula_turma SET transferido = true, remanejado = false, abandono = false, reclassificado = false, falecido = false, data_exclusao = '$data' WHERE ref_cod_matricula = {$this->ref_cod_matricula} AND sequencial = {$this->sequencial}");
+            if (is_null($dataBaseTransferencia) || strtotime($dataBaseTransferencia) < strtotime($data)) {
+                $db = new clsBanco();
+                $db->CampoUnico("UPDATE pmieducar.matricula_turma SET transferido = true, remanejado = false, abandono = false, reclassificado = false, falecido = false, data_exclusao = '$data' WHERE ref_cod_matricula = {$this->ref_cod_matricula} AND sequencial = {$this->sequencial}");
+            } else {
+                $db = new clsBanco();
+                $db->CampoUnico("UPDATE pmieducar.matricula_turma SET transferido = true, remanejado = false, abandono = false, reclassificado = false, falecido = false, data_exclusao = '$data' WHERE ref_cod_matricula = {$this->ref_cod_matricula} AND sequencial = {$this->sequencial}");
+            }
         }
     }
 
@@ -1227,6 +1475,121 @@ class clsPmieducarMatriculaTurma extends Model
         }
     }
 
+    public function dadosAlunosNaoEnturmados(
+        $ref_cod_escola = null,
+        $ref_cod_serie = null,
+        $ref_cod_curso = null,
+        $int_ano = null,
+        $verificar_multiseriado = false,
+        $semestre = null
+    ) {
+        if (is_numeric($int_ano) && (is_numeric($ref_cod_escola) ||
+                is_numeric($ref_cod_serie) || is_numeric($ref_cod_curso))) {
+            $db = new clsBanco();
+            $complemento_sql = '';
+
+            if ($verificar_multiseriado) {
+                $complemento_sql = ', m.ref_ref_cod_escola
+                  , m.cod_matricula';
+            }
+
+            $sql = "
+              SELECT
+                a.cod_aluno
+                , p.nome
+                , m.ref_ref_cod_serie
+                , s.ref_cod_curso
+                , s.nm_serie
+                , c.nm_curso
+                , f.sexo
+                , f.data_nasc
+                , a.tipo_responsavel
+                {$complemento_sql}
+              FROM
+                pmieducar.matricula m
+                , pmieducar.aluno a
+                , cadastro.pessoa p
+                , cadastro.fisica f
+                , pmieducar.curso c
+                , pmieducar.serie s
+              WHERE
+                m.cod_matricula NOT IN
+                (
+                  SELECT
+                    ref_cod_matricula
+                  FROM
+                    pmieducar.matricula_turma mt
+                    , pmieducar.turma t
+                  WHERE
+                    t.cod_turma = mt.ref_cod_turma
+                    AND mt.ativo = '1'
+                    AND m.ref_cod_curso = t.ref_cod_curso
+                    AND m.ref_ref_cod_serie = t.ref_ref_cod_serie
+                )
+                AND a.ref_idpes = p.idpes
+                AND p.idpes = f.idpes
+                AND a.cod_aluno = m.ref_cod_aluno
+                AND m.ref_ref_cod_serie = s.cod_serie
+                AND s.ref_cod_curso = c.cod_curso
+                AND m.ativo = '1'
+                AND m.ano = '{$int_ano}'
+                AND m.aprovado IN (1,2,3)
+                AND m.ultima_matricula = '1'";
+
+            if ($ref_cod_curso) {
+                $sql .= " AND m.ref_cod_curso = '{$ref_cod_curso}'";
+            }
+
+            if ($ref_cod_serie) {
+                $sql .= " AND m.ref_ref_cod_serie = '{$ref_cod_serie}'";
+            }
+
+            if ($ref_cod_escola) {
+                $sql .= " AND m.ref_ref_cod_escola = '{$ref_cod_escola}'";
+            }
+
+            if (is_numeric($semestre)) {
+                $sql .= " AND m.semestre = {$semestre} ";
+            }
+
+            $db->Consulta($sql . $this->getOrderby());
+
+            $resultado = [];
+
+            while ($db->ProximoRegistro()) {
+                $tupla = $db->Tupla();
+                if ($verificar_multiseriado) {
+                    if (is_numeric($tupla['ref_ref_cod_serie']) && is_numeric($tupla['ref_ref_cod_escola']) && is_numeric($tupla['cod_matricula'])) {
+                        $sql = "SELECT
+                  1
+                FROM
+                  pmieducar.matricula_turma mt,
+                  pmieducar.turma t
+                WHERE
+                  mt.ativo = 1
+                  AND t.ativo = 1
+                  AND t.ref_ref_cod_serie_mult = {$tupla['ref_ref_cod_serie']}
+                  AND t.ref_ref_cod_escola = {$tupla['ref_ref_cod_escola']}
+                  AND t.cod_turma = mt.ref_cod_turma
+                  AND mt.ref_cod_matricula = {$tupla['cod_matricula']}";
+                        $db3 = new clsBanco();
+                        $aluno_esta_enturmado = $db3->CampoUnico($sql);
+                    }
+
+                    if (!is_numeric($aluno_esta_enturmado)) {
+                        $resultado[] = $tupla;
+                    }
+                } else {
+                    $resultado[] = $tupla;
+                }
+            }
+
+            return $resultado;
+        }
+
+        return false;
+    }
+
     public function reclassificacao($data = null)
     {
         if (is_numeric($this->ref_cod_matricula)) {
@@ -1239,6 +1602,15 @@ class clsPmieducarMatriculaTurma extends Model
         }
 
         return false;
+    }
+
+    public function getAnoMatricula()
+    {
+        if (is_numeric($this->ref_cod_matricula)) {
+            $db = new clsBanco();
+
+            return $db->CampoUnico("SELECT ano FROM pmieducar.matricula WHERE cod_matricula = {$this->ref_cod_matricula}");
+        }
     }
 
     public function enturmacoesSemDependencia($turmaId)

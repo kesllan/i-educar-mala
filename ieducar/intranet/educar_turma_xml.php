@@ -1,11 +1,11 @@
 <?php
 
-header(header: 'Content-type: text/xml');
+header('Content-type: text/xml');
 
 Portabilis_Utils_DeprecatedXmlApi::returnEmptyQueryUnlessUserIsLoggedIn();
 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query xmlns=\"sugestoes\">\n";
-if (is_numeric(value: $_GET['esc']) && is_numeric(value: $_GET['ser'])) {
+if (is_numeric($_GET['esc']) && is_numeric($_GET['ser'])) {
     $anoLetivo = $_GET['ano'] ? $_GET['ano'] : 'NULL';
 
     $db = new clsBanco();
@@ -24,13 +24,13 @@ if (is_numeric(value: $_GET['esc']) && is_numeric(value: $_GET['ser'])) {
             GROUP BY cod_turma
             ORDER BY nm_turma";
 
-    $db->Consulta(consulta: $sql);
+    $db->Consulta($sql);
 
     while ($db->ProximoRegistro()) {
         [$cod, $nome] = $db->Tupla();
         echo "  <turma cod_turma=\"{$cod}\">{$nome}</turma>\n";
     }
-} elseif (is_numeric(value: $_GET['ins']) && is_numeric(value: $_GET['cur'])) {
+} elseif (is_numeric($_GET['ins']) && is_numeric($_GET['cur'])) {
     $db = new clsBanco();
 
     $sql = "SELECT cod_turma,
@@ -43,7 +43,7 @@ if (is_numeric(value: $_GET['esc']) && is_numeric(value: $_GET['ser'])) {
                 AND ativo = 1
             ORDER BY nm_turma";
 
-    $db->Consulta(consulta: $sql);
+    $db->Consulta($sql);
 
     while ($db->ProximoRegistro()) {
         [$cod, $nome] = $db->Tupla();

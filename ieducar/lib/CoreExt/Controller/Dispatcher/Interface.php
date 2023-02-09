@@ -5,6 +5,7 @@ interface CoreExt_Controller_Dispatcher_Interface
     /**
      * Setter.
      *
+     * @param CoreExt_Controller_Request_Interface $request
      *
      * @return CoreExt_Controller_Dispatcher_Interface Provê interface fluída
      */

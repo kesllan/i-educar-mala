@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\LegacyEnrollment;
+use App\Models\Enrollment;
 
 return new class extends clsCadastro {
     public $cod_matricula;
@@ -26,28 +26,60 @@ return new class extends clsCadastro {
 
     public function Gerar()
     {
-        $this->campoOculto(nome: 'cod_matricula', valor: $this->cod_matricula);
-        $this->campoOculto(nome: 'ref_cod_aluno', valor: $this->ref_cod_aluno);
+        $this->campoOculto('cod_matricula', $this->cod_matricula);
+        $this->campoOculto('ref_cod_aluno', $this->ref_cod_aluno);
 
         $this->array_botao[] = 'Voltar';
         $this->array_botao_url[] = "educar_matricula_det.php?cod_matricula={$this->cod_matricula}";
 
-        $this->breadcrumb(currentPage: 'Turno do aluno', breadcrumbs: [
+        $this->breadcrumb('Turno do aluno', [
             $_SERVER['SERVER_NAME'] . '/intranet' => 'Início',
             'educar_index.php' => 'Escola',
         ]);
 
         $obj_aluno = new clsPmieducarAluno();
-        $lst_aluno = $obj_aluno->lista(int_cod_aluno: $this->ref_cod_aluno, int_ativo: 1);
+        $lst_aluno = $obj_aluno->lista($this->ref_cod_aluno, null, null, null, null, null, null, null, null, null, 1);
         if (is_array($lst_aluno)) {
             $det_aluno = array_shift($lst_aluno);
             $this->nm_aluno = $det_aluno['nome_aluno'];
-            $this->campoRotulo(nome: 'nm_aluno', campo: 'Aluno', valor: $this->nm_aluno);
+            $this->campoRotulo('nm_aluno', 'Aluno', $this->nm_aluno);
         }
         $enturmacoes = new clsPmieducarMatriculaTurma();
         $enturmacoes = $enturmacoes->lista(
-            int_ref_cod_matricula: $this->cod_matricula,
-            int_ativo: 1
+            $this->cod_matricula,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            1,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            null,
+            null,
+            false,
+            false,
+            false,
+            null,
+            null,
+            false,
+            null,
+            false,
+            false,
+            false
         );
 
         $turnos = [
@@ -63,7 +95,7 @@ return new class extends clsCadastro {
                 continue;
             }
 
-            $this->campoLista(nome: "turno[{$enturmacao['ref_cod_turma']}-{$enturmacao['sequencial']}]", campo: "Turno do aluno na turma: {$enturmacao['nm_turma']}", valor: $turnos, default: $enturmacao['turno_id'], descricao: 'Não é necessário preencher o campo quando o aluno cursar o turno INTEGRAL', obrigatorio: false);
+            $this->campoLista("turno[{$enturmacao['ref_cod_turma']}-{$enturmacao['sequencial']}]", "Turno do aluno na turma: {$enturmacao['nm_turma']}", $turnos, $enturmacao['turno_id'], '', false, 'Não é necessário preencher o campo quando o aluno cursar o turno INTEGRAL', '', false, false);
         }
 
         $this->acao_enviar = 'showConfirmationMessage(this)';
@@ -77,15 +109,15 @@ return new class extends clsCadastro {
         $is_change = false;
         foreach ($this->turno as $codTurmaESequencial => $turno) {
             // Necessário pois chave é Turma + Matrícula + Sequencial
-            $codTurmaESequencial = explode(separator: '-', string: $codTurmaESequencial);
+            $codTurmaESequencial = explode('-', $codTurmaESequencial);
             $codTurma = $codTurmaESequencial[0];
             $sequencial = $codTurmaESequencial[1];
 
 
-            if (LegacyEnrollment::where(column: 'ref_cod_matricula', operator: $this->cod_matricula)->where(column: 'ref_cod_turma', operator: $codTurma)->value('turno_id') != (int) $turno) {
+            if (Enrollment::where('ref_cod_matricula',$this->cod_matricula)->where('ref_cod_turma',$codTurma)->value('turno_id') !=  (int)$turno) {
                 $is_change = true;
 
-                $obj = new clsPmieducarMatriculaTurma(ref_cod_matricula: $this->cod_matricula, ref_cod_turma: $codTurma, ref_usuario_exc: $this->pessoa_logada);
+                $obj = new clsPmieducarMatriculaTurma($this->cod_matricula, $codTurma, $this->pessoa_logada);
                 $obj->sequencial = $sequencial;
                 $obj->turno_id = $turno;
                 $obj->edita();
@@ -93,9 +125,9 @@ return new class extends clsCadastro {
         }
 
 
-        session()->flash(key: 'success', value: $is_change ? 'Turno alterado com sucesso!' : 'Não houve alteração no valor do campo Turno.');
+        session()->flash('success', $is_change ? 'Turno alterado com sucesso!' : 'Não houve alteração no valor do campo Turno.');
 
-        $this->simpleRedirect(url('intranet/educar_matricula_det.php?cod_matricula='.$this->cod_matricula));
+        return $this->simpleRedirect(url('intranet/educar_matricula_det.php?cod_matricula='.$this->cod_matricula));
     }
 
     public function makeExtra()
@@ -106,7 +138,7 @@ return new class extends clsCadastro {
     private function validaPermissao()
     {
         $obj_permissoes = new clsPermissoes();
-        $obj_permissoes->permissao_cadastra(int_processo_ap: 578, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7, str_pagina_redirecionar: "educar_matricula_lst.php?ref_cod_aluno={$this->ref_cod_aluno}");
+        $obj_permissoes->permissao_cadastra(578, $this->pessoa_logada, 7, "educar_matricula_lst.php?ref_cod_aluno={$this->ref_cod_aluno}");
     }
 
     private function validaParametros()

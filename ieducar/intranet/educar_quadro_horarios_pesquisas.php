@@ -38,7 +38,7 @@
             $obj_instituicao = new clsPmieducarInstituicao();
             $obj_instituicao->setCamposLista('cod_instituicao, nm_instituicao');
             $obj_instituicao->setOrderby('nm_instituicao ASC');
-            $lista = $obj_instituicao->lista(int_ativo: 1);
+            $lista = $obj_instituicao->lista(null, null, null, null, null, null, null, null, null, null, null, null, null, 1);
             if (is_array($lista) && count($lista)) {
                 foreach ($lista as $registro) {
                     $opcoes["{$registro['cod_instituicao']}"] = "{$registro['nm_instituicao']}";
@@ -96,7 +96,7 @@
         if ($get_escola) {
             $opcoes_escola = [ '' => 'Selecione' ];
             $obj_escola = new clsPmieducarEscola();
-            $lista = $obj_escola->lista(str_nome: 1);
+            $lista = $obj_escola->lista(null, null, null, null, null, null, null, null, null, null, 1);
             if ($nivel_usuario == 4 || $nivel_usuario == 8) {
                 $opcoes_escola = ['' => 'Selecione'];
                 $obj_escola = new clsPmieducarEscolaUsuario();
@@ -115,7 +115,7 @@
             } elseif ($this->ref_cod_instituicao) {
                 $opcoes_escola = [ '' => 'Selecione' ];
                 $obj_escola = new clsPmieducarEscola();
-                $lista = $obj_escola->lista(int_ref_cod_instituicao: $this->ref_cod_instituicao, str_nome: 1);
+                $lista = $obj_escola->lista(null, null, null, $this->ref_cod_instituicao, null, null, null, null, null, null, 1);
                 if (is_array($lista) && count($lista)) {
                     foreach ($lista as $registro) {
                         $opcoes_escola["{$registro['cod_escola']}"] = "{$registro['nome']}";
@@ -195,7 +195,7 @@
             // EDITAR
             if ($this->ref_cod_escola) {
                 $obj_esc_cur = new clsPmieducarEscolaCurso();
-                $lst_esc_cur = $obj_esc_cur->lista(int_ref_cod_escola: $this->ref_cod_escola, int_ativo: 1);
+                $lst_esc_cur = $obj_esc_cur->lista($this->ref_cod_escola, null, null, null, null, null, null, null, 1);
                 if (is_array($lst_esc_cur) && count($lst_esc_cur)) {
                     foreach ($lst_esc_cur as $detalhe) {
                         $opcoes_curso["{$detalhe['ref_cod_curso']}"] = "{$detalhe['nm_curso']}";
@@ -235,7 +235,7 @@
             if ($this->ref_cod_curso && $this->ref_cod_escola) {
                 $obj_serie = new clsPmieducarSerie();
                 $obj_serie->setOrderby('nm_serie ASC');
-                $lst_serie = $obj_serie->lista(int_ref_cod_curso: $this->ref_cod_curso, int_ativo: 1);
+                $lst_serie = $obj_serie->lista(null, null, null, $this->ref_cod_curso, null, null, null, null, null, null, null, null, 1);
                 if (is_array($lst_serie) && count($lst_serie)) {
                     foreach ($lst_serie as $serie) {
                         $opcoes_serie["{$serie['cod_serie']}"] = $serie['nm_serie'];
@@ -274,7 +274,7 @@
             if ($this->ref_cod_serie /*|| $this->ref_cod_curso*/) {
                 $obj_turma = new clsPmieducarTurma();
                 $obj_turma->setOrderby('nm_turma ASC');
-                $lst_turma = $obj_turma->lista(int_ref_ref_cod_serie: $this->ref_cod_serie, int_ref_ref_cod_escola: $this->ref_cod_escola, int_ref_cod_curso: $this->ref_cod_curso, ano: $this->ano);
+                $lst_turma = $obj_turma->lista(null, null, null, $this->ref_cod_serie, $this->ref_cod_escola, null, null, null, null, null, null, null, null, 1, null, null, null, null, null, null, null, null, null, null, $this->ref_cod_curso, $this->ref_cod_instituicao, null, null, null, null, null, null, null, null, null, null, $this->ano);
                 if (is_array($lst_turma) && count($lst_turma)) {
                     foreach ($lst_turma as $turma) {
                         $opcoes_turma["{$turma['cod_turma']}"] = $turma['nm_turma'];
@@ -370,20 +370,63 @@
                      </tr><tr><td>&nbsp;</td></tr>";
 ?>
 <script>
+/*
+function desabilitaCampos()
+{
+    var obj_instituicao;
+    var obj_escola;
+    var obj_curso;
+    var obj_serie;
+    var obj_turma;
+
+    if ( document.getElementById('ref_cod_instituicao') )
+    {
+        obj_instituicao          = document.getElementById( 'ref_cod_instituicao' );
+        obj_instituicao.disabled = false;
+    }
+
+    if ( document.getElementById( 'ref_cod_escola' ) )
+    {
+        obj_escola          = document.getElementById('ref_cod_escola');
+        obj_escola.disabled = false;
+    }
+
+    if ( document.getElementById('ref_cod_curso') ) {
+        obj_curso          = document.getElementById('ref_cod_curso');
+        obj_curso.disabled = false;
+    }
+
+    if ( document.getElementById('ref_cod_serie') )
+    {
+        obj_serie          = document.getElementById('ref_cod_serie');
+        obj_serie.disabled = false;
+    }
+
+    if ( document.getElementById('ref_cod_turma') )
+    {
+        obj_turma          = document.getElementById('ref_cod_turma');
+        obj_turma.disabled = false;
+    }
+}
+*/
 
 <?php
 if ($nivel_usuario == 1 || $nivel_usuario == 2) {
     ?>
-    function getEscola( escolas )
+    function getEscola( xml_escola )
     {
+        var DOM_array = xml_escola.getElementsByTagName( "escola" );
 
-        if(escolas.length)
+        if(DOM_array.length)
         {
-            setAttributes(campoEscola,'Selecione uma escola',false);
+            campoEscola.length = 1;
+            campoEscola.options[0].text = 'Selecione uma escola';
+            campoEscola.disabled = false;
 
-            $j.each(escolas, function(i, item) {
-                campoEscola.options[campoEscola.options.length] = new Option(item.name,item.id, false, false);
-            });
+            for( var i = 0; i < DOM_array.length; i++ )
+            {
+                campoEscola.options[campoEscola.options.length] = new Option( DOM_array[i].firstChild.data, DOM_array[i].getAttribute("cod_escola"),false,false);
+            }
         }
         else
             campoEscola.options[0].text = 'A instituição não possui nenhuma escola';
@@ -392,56 +435,79 @@ if ($nivel_usuario == 1 || $nivel_usuario == 2) {
 }
 ?>
 
-function getCurso(cursos)
+function getCurso( xml_curso )
 {
-    if(cursos.length)    {
-        setAttributes(campoCurso,'Selecione um curso',false);
-        $j.each(cursos, function(i, item) {
-            campoCurso.options[campoCurso.options.length] = new Option(item.name,item.id, false, false);
-        });
+    var DOM_array = xml_curso.getElementsByTagName( "curso" );
+
+    if(DOM_array.length)
+    {
+        campoCurso.length = 1;
+        campoCurso.options[0].text = 'Selecione um curso';
+        campoCurso.disabled = false;
+
+        for( var i = 0; i < DOM_array.length; i++ )
+        {
+            campoCurso.options[campoCurso.options.length] = new Option( DOM_array[i].firstChild.data, DOM_array[i].getAttribute("cod_curso"),false,false);
+        }
     }
     else
         campoCurso.options[0].text = 'A escola não possui nenhum curso';
 }
 
-function getAnoLetivo(anos)
+function getAnoLetivo( xml_ano )
 {
-    if(anos.length)
-    {
-        setAttributes(campoAno,'Selecione um ano',false);
+    var DOM_array = xml_ano.getElementsByTagName( "ano" );
 
-        $j.each(anos, function(i, item) {
-            campoAno.options[campoAno.options.length] = new Option(item.year,item.year, false, false);
-        });
+    if(DOM_array.length)
+    {
+        campoAno.length = 1;
+        campoAno.options[0].text = 'Selecione um ano';
+        campoAno.disabled = false;
+
+        for( var i = 0; i < DOM_array.length; i++ )
+        {
+            campoAno.options[campoAno.options.length] = new Option( DOM_array[i].firstChild.data, DOM_array[i].firstChild.data,false,false);
+        }
     }
     else
         campoAno.options[0].text = 'A escola não possui nenhum ano';
 }
 
-function getSerie(series)
+function getSerie( xml_serie )
 {
-    if(series.length)
-    {
-        setAttributes(campoSerie,'Selecione uma série',false);
+    var DOM_array = xml_serie.getElementsByTagName( "serie" );
 
-        $j.each(series, function(i, item) {
-            campoSerie.options[campoSerie.options.length] = new Option(item.name,item.id, false, false);
-        });
+    if(DOM_array.length)
+    {
+        campoSerie.length = 1;
+        campoSerie.options[0].text = 'Selecione uma série';
+        campoSerie.disabled = false;
+
+        for( var i = 0; i < DOM_array.length; i++ )
+        {
+            campoSerie.options[campoSerie.options.length] = new Option( DOM_array[i].firstChild.data, DOM_array[i].getAttribute("cod_serie"),false,false);
+        }
     }
     else
         campoSerie.options[0].text = 'A escola/curso não possui nenhuma série';
 }
 
-function getTurma(turmas)
+function getTurma( xml_turma )
 {
 
-    if(turmas.length)
-    {
-        setAttributes(campoTurma,'Selecione uma turma',false);
+    console.log(xml_turma);
+    var DOM_array = xml_turma.getElementsByTagName( "turma" );
 
-        $j.each(turmas, function(i, item) {
-            campoTurma.options[campoTurma.options.length] = new Option(item.name,item.id, false, false);
-        });
+    if(DOM_array.length)
+    {
+        campoTurma.length = 1;
+        campoTurma.options[0].text = 'Selecione uma turma';
+        campoTurma.disabled = false;
+
+        for( var i = 0; i < DOM_array.length; i++ )
+        {
+            campoTurma.options[campoTurma.options.length] = new Option( DOM_array[i].firstChild.data, DOM_array[i].getAttribute("cod_turma"),false,false);
+        }
     }
     else
         campoTurma.options[0].text = 'A escola/série não possui nenhuma turma';

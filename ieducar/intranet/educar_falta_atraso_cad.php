@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends clsCadastro {
     public $pessoa_logada;
+
     public $cod_falta_atraso;
     public $ref_cod_escola;
     public $ref_cod_instituicao;
@@ -31,10 +32,10 @@ return new class extends clsCadastro {
 
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(
-            int_processo_ap: 635,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: 'educar_falta_atraso_lst.php'
+            635,
+            $this->pessoa_logada,
+            7,
+            'educar_falta_atraso_lst.php'
         );
 
         if (is_numeric($this->cod_falta_atraso)) {
@@ -51,7 +52,7 @@ return new class extends clsCadastro {
 
                 $obj_permissoes = new clsPermissoes();
 
-                if ($obj_permissoes->permissao_excluir(int_processo_ap: 635, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7)) {
+                if ($obj_permissoes->permissao_excluir(635, $this->pessoa_logada, 7)) {
                     $this->fexcluir = true;
                 }
 
@@ -65,7 +66,7 @@ return new class extends clsCadastro {
 
         $nomeMenu = $retorno == 'Editar' ? $retorno : 'Cadastrar';
 
-        $this->breadcrumb(currentPage: $nomeMenu . ' falta/atraso do servidor', breadcrumbs: [
+        $this->breadcrumb($nomeMenu . ' falta/atraso do servidor', [
             url('intranet/educar_servidores_index.php') => 'Servidores',
         ]);
 
@@ -75,11 +76,11 @@ return new class extends clsCadastro {
     public function Gerar()
     {
         // Primary keys
-        $this->campoOculto(nome: 'cod_falta_atraso', valor: $this->cod_falta_atraso);
-        $this->campoOculto(nome: 'ref_cod_servidor', valor: $this->ref_cod_servidor);
+        $this->campoOculto('cod_falta_atraso', $this->cod_falta_atraso);
+        $this->campoOculto('ref_cod_servidor', $this->ref_cod_servidor);
 
-        $this->inputsHelper()->dynamic(helperNames: 'instituicao', inputOptions: ['value' => $this->ref_cod_instituicao]);
-        $this->inputsHelper()->dynamic(helperNames: 'escola', inputOptions: ['value' => $this->ref_cod_escola]);
+        $this->inputsHelper()->dynamic('instituicao', ['value' => $this->ref_cod_instituicao]);
+        $this->inputsHelper()->dynamic('escola', ['value' => $this->ref_cod_escola]);
 
         // Text
         // @todo CoreExt_Enum
@@ -89,14 +90,14 @@ return new class extends clsCadastro {
             2  => 'Falta'
         ];
 
-        $this->campoLista(nome: 'tipo', campo: 'Tipo', valor: $opcoes, default: $this->tipo);
+        $this->campoLista('tipo', 'Tipo', $opcoes, $this->tipo);
 
         $funcoesDoServidor = $this->getFuncoesServidor($this->ref_cod_servidor);
         $funcoesDoServidor = array_replace([null => 'Selecione'], $funcoesDoServidor);
-        $this->campoLista(nome: 'ref_cod_servidor_funcao', campo: 'Função', valor: $funcoesDoServidor, default: $this->ref_cod_servidor_funcao, acao: null, duplo: null, descricao: null, complemento: null, desabilitado: null, obrigatorio: false);
+        $this->campoLista('ref_cod_servidor_funcao', 'Função', $funcoesDoServidor, $this->ref_cod_servidor_funcao, null, null, null, null, null, false);
 
-        $this->campoNumero(nome: 'qtd_horas', campo: 'Quantidade de Horas', valor: $this->qtd_horas, tamanhovisivel: 30, tamanhomaximo: 255);
-        $this->campoNumero(nome: 'qtd_min', campo: 'Quantidade de Minutos', valor: $this->qtd_min, tamanhovisivel: 30, tamanhomaximo: 255);
+        $this->campoNumero('qtd_horas', 'Quantidade de Horas', $this->qtd_horas, 30, 255, false);
+        $this->campoNumero('qtd_min', 'Quantidade de Minutos', $this->qtd_min, 30, 255, false);
 
         $opcoes = [
             '' => 'Selecione',
@@ -104,21 +105,21 @@ return new class extends clsCadastro {
             1  => 'Não'
         ];
 
-        $this->campoLista(nome: 'justificada', campo: 'Justificada', valor: $opcoes, default: $this->justificada);
+        $this->campoLista('justificada', 'Justificada', $opcoes, $this->justificada);
 
         // Data
-        $this->campoData(nome: 'data_falta_atraso', campo: 'Dia', valor: $this->data_falta_atraso, obrigatorio: true);
+        $this->campoData('data_falta_atraso', 'Dia', $this->data_falta_atraso, true);
     }
 
     private function getFuncoesServidor($codServidor)
     {
         return DB::table('pmieducar.servidor_funcao')
             ->select(DB::raw('cod_servidor_funcao, nm_funcao || coalesce( \' - \' || matricula, \'\') as funcao_matricula'))
-            ->join(table: 'pmieducar.funcao', first: 'funcao.cod_funcao', operator: 'servidor_funcao.ref_cod_funcao')
+            ->join('pmieducar.funcao', 'funcao.cod_funcao', 'servidor_funcao.ref_cod_funcao')
             ->where([['servidor_funcao.ref_cod_servidor', $codServidor]])
-            ->orderBy(column: 'matricula')
+            ->orderBy('matricula', 'asc')
             ->get()
-            ->pluck(value: 'funcao_matricula', key: 'cod_servidor_funcao')
+            ->pluck('funcao_matricula', 'cod_servidor_funcao')
             ->toArray();
     }
 
@@ -128,10 +129,10 @@ return new class extends clsCadastro {
 
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(
-            int_processo_ap: 635,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: sprintf(
+            635,
+            $this->pessoa_logada,
+            7,
+            sprintf(
                 'educar_falta_atraso_lst.php?ref_cod_servidor=%d&ref_cod_instituicao=%d',
                 $this->ref_cod_servidor,
                 $this->ref_cod_instituicao
@@ -140,38 +141,46 @@ return new class extends clsCadastro {
 
         if ($this->tipo == 1) {
             $obj = new clsPmieducarFaltaAtraso(
-                ref_cod_escola: $this->ref_cod_escola,
-                ref_ref_cod_instituicao: $this->ref_cod_instituicao,
-                ref_usuario_cad: $this->pessoa_logada,
-                ref_cod_servidor: $this->ref_cod_servidor,
-                tipo: $this->tipo,
-                data_falta_atraso: $this->data_falta_atraso,
-                qtd_horas: $this->qtd_horas,
-                qtd_min: $this->qtd_min,
-                justificada: $this->justificada,
-                ativo: 1,
-                ref_cod_servidor_funcao: $this->ref_cod_servidor_funcao
+                null,
+                $this->ref_cod_escola,
+                $this->ref_cod_instituicao,
+                null,
+                $this->pessoa_logada,
+                $this->ref_cod_servidor,
+                $this->tipo,
+                $this->data_falta_atraso,
+                $this->qtd_horas,
+                $this->qtd_min,
+                $this->justificada,
+                null,
+                null,
+                1,
+                $this->ref_cod_servidor_funcao
             );
         } elseif ($this->tipo == 2) {
             $db = new clsBanco();
             $dia_semana = $db->CampoUnico(sprintf('(SELECT EXTRACT (DOW FROM date \'%s\') + 1 )', $this->data_falta_atraso));
 
             $obj_ser = new clsPmieducarServidor();
-            $horas   = $obj_ser->qtdhoras(int_cod_servidor: $this->ref_cod_servidor, int_cod_escola: $this->ref_cod_escola, int_ref_cod_instituicao: $this->ref_cod_instituicao, dia_semana: $dia_semana);
+            $horas   = $obj_ser->qtdhoras($this->ref_cod_servidor, $this->ref_cod_escola, $this->ref_cod_instituicao, $dia_semana);
 
             if ($horas) {
                 $obj = new clsPmieducarFaltaAtraso(
-                    ref_cod_escola: $this->ref_cod_escola,
-                    ref_ref_cod_instituicao: $this->ref_cod_instituicao,
-                    ref_usuario_cad: $this->pessoa_logada,
-                    ref_cod_servidor: $this->ref_cod_servidor,
-                    tipo: $this->tipo,
-                    data_falta_atraso: $this->data_falta_atraso,
-                    qtd_horas: $horas['hora'],
-                    qtd_min: $horas['min'],
-                    justificada: $this->justificada,
-                    ativo: 1,
-                    ref_cod_servidor_funcao: $this->ref_cod_servidor_funcao
+                    null,
+                    $this->ref_cod_escola,
+                    $this->ref_cod_instituicao,
+                    null,
+                    $this->pessoa_logada,
+                    $this->ref_cod_servidor,
+                    $this->tipo,
+                    $this->data_falta_atraso,
+                    $horas['hora'],
+                    $horas['min'],
+                    $this->justificada,
+                    null,
+                    null,
+                    1,
+                    $this->ref_cod_servidor_funcao
                 );
             }
         }
@@ -196,10 +205,10 @@ return new class extends clsCadastro {
     {
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(
-            int_processo_ap: 635,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: sprintf(
+            635,
+            $this->pessoa_logada,
+            7,
+            sprintf(
                 'educar_falta_atraso_lst.php?ref_cod_servidor=%d&ref_cod_instituicao=%d',
                 $this->ref_cod_servidor,
                 $this->ref_cod_instituicao
@@ -208,42 +217,53 @@ return new class extends clsCadastro {
         $this->data_falta_atraso = Portabilis_Date_Utils::brToPgSQL($this->data_falta_atraso);
         if ($this->tipo == 1) {
             $obj = new clsPmieducarFaltaAtraso(
-                cod_falta_atraso: $this->cod_falta_atraso,
-                ref_cod_escola: $this->ref_cod_escola,
-                ref_ref_cod_instituicao: $this->ref_cod_instituicao,
-                ref_usuario_exc: $this->pessoa_logada,
-                ref_cod_servidor: $this->ref_cod_servidor,
-                tipo: $this->tipo,
-                data_falta_atraso: $this->data_falta_atraso,
-                qtd_horas: $this->qtd_horas,
-                qtd_min: $this->qtd_min,
-                justificada: $this->justificada,
-                ativo: 1,
-                ref_cod_servidor_funcao: $this->ref_cod_servidor_funcao
+                $this->cod_falta_atraso,
+                $this->ref_cod_escola,
+                $this->ref_cod_instituicao,
+                $this->pessoa_logada,
+                null,
+                $this->ref_cod_servidor,
+                $this->tipo,
+                $this->data_falta_atraso,
+                $this->qtd_horas,
+                $this->qtd_min,
+                $this->justificada,
+                null,
+                null,
+                1,
+                $this->ref_cod_servidor_funcao
             );
         } elseif ($this->tipo == 2) {
             $obj_ser = new clsPmieducarServidor(
-                cod_servidor: $this->ref_cod_servidor,
-                ativo: 1,
-                ref_cod_instituicao: $this->ref_cod_instituicao
+                $this->ref_cod_servidor,
+                null,
+                null,
+                null,
+                null,
+                null,
+                1,
+                $this->ref_cod_instituicao
             );
 
             $det_ser = $obj_ser->detalhe();
             $horas   = floor($det_ser['carga_horaria']);
             $minutos = ($det_ser['carga_horaria'] - $horas) * 60;
             $obj = new clsPmieducarFaltaAtraso(
-                cod_falta_atraso: $this->cod_falta_atraso,
-                ref_cod_escola: $this->ref_cod_escola,
-                ref_ref_cod_instituicao: $this->ref_cod_instituicao,
-                ref_usuario_exc: $this->pessoa_logada,
-                ref_cod_servidor: $this->ref_cod_servidor,
-                tipo: $this->tipo,
-                data_falta_atraso: $this->data_falta_atraso,
-                qtd_horas: $horas,
-                qtd_min: $minutos,
-                justificada: $this->justificada,
-                ativo: 1,
-                ref_cod_servidor_funcao: $this->ref_cod_servidor_funcao
+                $this->cod_falta_atraso,
+                $this->ref_cod_escola,
+                $this->ref_cod_instituicao,
+                $this->pessoa_logada,
+                null,
+                $this->ref_cod_servidor,
+                $this->tipo,
+                $this->data_falta_atraso,
+                $horas,
+                $minutos,
+                $this->justificada,
+                null,
+                null,
+                1,
+                $this->ref_cod_servidor_funcao
             );
         }
         $editou = $obj->edita();
@@ -266,10 +286,10 @@ return new class extends clsCadastro {
         $this->data_falta_atraso = Portabilis_Date_Utils::brToPgSQL($this->data_falta_atraso);
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_excluir(
-            int_processo_ap: 635,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: sprintf(
+            635,
+            $this->pessoa_logada,
+            7,
+            sprintf(
                 'educar_falta_atraso_lst.php?ref_cod_servidor=%d&ref_cod_instituicao=%d',
                 $this->ref_cod_servidor,
                 $this->ref_cod_instituicao
@@ -277,20 +297,20 @@ return new class extends clsCadastro {
         );
 
         $obj = new clsPmieducarFaltaAtraso(
-            cod_falta_atraso: $this->cod_falta_atraso,
-            ref_cod_escola: $this->ref_cod_escola,
-            ref_ref_cod_instituicao: $this->ref_ref_cod_instituicao,
-            ref_usuario_exc: $this->pessoa_logada,
-            ref_usuario_cad: $this->pessoa_logada,
-            ref_cod_servidor: $this->ref_cod_servidor,
-            tipo: $this->tipo,
-            data_falta_atraso: $this->data_falta_atraso,
-            qtd_horas: $this->qtd_horas,
-            qtd_min: $this->qtd_min,
-            justificada: $this->justificada,
-            data_cadastro: $this->data_cadastro,
-            data_exclusao: $this->data_exclusao,
-            ativo: 0
+            $this->cod_falta_atraso,
+            $this->ref_cod_escola,
+            $this->ref_ref_cod_instituicao,
+            $this->pessoa_logada,
+            $this->pessoa_logada,
+            $this->ref_cod_servidor,
+            $this->tipo,
+            $this->data_falta_atraso,
+            $this->qtd_horas,
+            $this->qtd_min,
+            $this->justificada,
+            $this->data_cadastro,
+            $this->data_exclusao,
+            0
         );
         $excluiu = $obj->excluir();
         if ($excluiu) {

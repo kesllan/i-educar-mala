@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\LegacyGrade;
-
 return new class extends clsListagem {
     public $limite;
     public $offset;
@@ -32,41 +30,7 @@ return new class extends clsListagem {
         $lista_busca[] = 'Escola';
         $this->addCabecalhos($lista_busca);
 
-        $obrigatorio = false;
-        $get_escola = true;
-        $get_curso = true;
-        $get_serie = false;
-        $get_escola_serie = true;
-        $get_select_name_full = true;
-
-        include 'include/pmieducar/educar_campo_lista.php';
-
-        if ($this->ref_cod_escola_) {
-            $this->ref_cod_escola = $this->ref_cod_escola_;
-        }
-
-        if ($this->ref_cod_serie_) {
-            $this->ref_cod_serie = $this->ref_cod_serie_;
-        }
-
-        $opcoes_serie = ['' => 'Selecione uma série'];
-
-        // Editar
-        if ($this->ref_cod_curso) {
-            $series = LegacyGrade::where('ativo',1)->where('ref_cod_curso',$this->ref_cod_curso)->orderBy('nm_serie')->get(['nm_serie','cod_serie']);
-
-            foreach ($series as $serie) {
-                $opcoes_serie[$serie['cod_serie']] = $serie['nm_serie'];
-            }
-        }
-
-        $this->campoLista(
-            nome: 'ref_cod_serie',
-            campo: 'Série',
-            valor: $opcoes_serie,
-            default: $this->ref_cod_serie,
-            obrigatorio: false
-        );
+        $this->inputsHelper()->dynamic(['instituicao', 'escola', 'curso', 'serie'], [],['options' => ['required' => false]]);
 
         // Paginador
         $this->limite = 20;
@@ -76,18 +40,32 @@ return new class extends clsListagem {
 
         $obj_escola_serie = new clsPmieducarEscolaSerie();
         $obj_escola_serie->setOrderby('nm_serie ASC');
-        $obj_escola_serie->setLimite(intLimiteQtd: $this->limite, intLimiteOffset: $this->offset);
+        $obj_escola_serie->setLimite($this->limite, $this->offset);
 
         if (App_Model_IedFinder::usuarioNivelBibliotecaEscolar($this->pessoa_logada)) {
             $obj_escola_serie->codUsuario = $this->pessoa_logada;
         }
 
         $lista = $obj_escola_serie->lista(
-            int_ref_cod_escola: $this->ref_cod_escola,
-            int_ref_cod_serie: $this->ref_cod_serie,
-            int_ativo: 1,
-            int_ref_cod_instituicao: $this->ref_cod_instituicao,
-            int_ref_cod_curso: $this->ref_cod_curso
+            $this->ref_cod_escola,
+            $this->ref_cod_serie,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            1,
+            null,
+            null,
+            null,
+            null,
+            $this->ref_cod_instituicao,
+            $this->ref_cod_curso
         );
 
         $total = $obj_escola_serie->_total;
@@ -124,30 +102,24 @@ return new class extends clsListagem {
         }
 
         $this->addPaginador2(
-            strUrl: 'educar_escola_serie_lst.php',
-            intTotalRegistros: $total,
-            mixVariaveisMantidas: $_GET,
-            nome: $this->nome,
-            intResultadosPorPagina: $this->limite
+            'educar_escola_serie_lst.php',
+            $total,
+            $_GET,
+            $this->nome,
+            $this->limite
         );
 
         $obj_permissao = new clsPermissoes();
-        if ($obj_permissao->permissao_cadastra(int_processo_ap: 585, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7)) {
+        if ($obj_permissao->permissao_cadastra(585, $this->pessoa_logada, 7)) {
             $this->acao = 'go("educar_escola_serie_cad.php")';
             $this->nome_acao = 'Novo';
         }
 
         $this->largura = '100%';
 
-        $this->breadcrumb(currentPage: 'Séries da escola', breadcrumbs: [
+        $this->breadcrumb('Séries da escola', [
             url('intranet/educar_index.php') => 'Escola',
         ]);
-    }
-
-
-    public function makeExtra()
-    {
-        return file_get_contents(public_path('/vendor/legacy/Cadastro/Assets/Javascripts/EscolaSerie.js'));
     }
 
     public function Formular()

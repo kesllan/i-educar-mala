@@ -27,9 +27,9 @@ return new class extends clsCadastro {
 
     public function Inicializar()
     {
-        $this->id = $this->getQueryString(name: 'id');
-        $this->servidor_id = $this->getQueryString(name: 'ref_cod_servidor');
-        $this->ref_cod_instituicao = $this->getQueryString(name: 'ref_cod_instituicao');
+        $this->id = $this->getQueryString('id');
+        $this->servidor_id = $this->getQueryString('ref_cod_servidor');
+        $this->ref_cod_instituicao = $this->getQueryString('ref_cod_instituicao');
 
         // URL para redirecionamento
         $backUrl = sprintf(
@@ -39,16 +39,16 @@ return new class extends clsCadastro {
         );
 
         $obj_permissoes = new clsPermissoes();
-        $obj_permissoes->permissao_cadastra(int_processo_ap: 635, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7, str_pagina_redirecionar: $backUrl);
+        $obj_permissoes->permissao_cadastra(635, $this->pessoa_logada, 7, $backUrl);
 
-        if ($obj_permissoes->permissao_excluir(int_processo_ap: 635, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7)) {
+        if ($obj_permissoes->permissao_excluir(635, $this->pessoa_logada, 7)) {
             $this->fexcluir = true;
         }
 
         $retorno = 'Novo';
 
-        if (is_numeric(value: $this->id)) {
-            $obj = new clsModulesProfessorTurma(id: $this->id);
+        if (is_numeric($this->id)) {
+            $obj = new clsModulesProfessorTurma($this->id);
 
             $registro = $obj->detalhe();
 
@@ -59,7 +59,7 @@ return new class extends clsCadastro {
                 $this->permite_lancar_faltas_componente = $registro['permite_lancar_faltas_componente'];
                 $this->turma_turno_id = $registro['turno_id'];
 
-                $obj_turma = new clsPmieducarTurma(cod_turma: $this->ref_cod_turma);
+                $obj_turma = new clsPmieducarTurma($this->ref_cod_turma);
                 $obj_turma = $obj_turma->detalhe();
                 $this->ref_cod_escola = $obj_turma['ref_ref_cod_escola'];
 
@@ -67,8 +67,8 @@ return new class extends clsCadastro {
                 $this->ref_cod_serie = $obj_turma['ref_ref_cod_serie'];
                 $this->turma_estrutura_curricular = $obj_turma['estrutura_curricular'];
 
-                if (is_string(value: $registro['unidades_curriculares'])) {
-                    $this->unidades_curriculares = explode(separator: ',', string: str_replace(search: ['{', '}'], replace: '', subject: $registro['unidades_curriculares']));
+                if (is_string($registro['unidades_curriculares'])) {
+                    $this->unidades_curriculares = explode(',', str_replace(['{', '}'], '', $registro['unidades_curriculares']));
                 }
 
                 if (!isset($_GET['copia'])) {
@@ -76,7 +76,7 @@ return new class extends clsCadastro {
                 }
 
                 if (isset($_GET['copia'])) {
-                    $this->ano = date(format: 'Y');
+                    $this->ano = date('Y');
                 }
             }
         }
@@ -87,7 +87,7 @@ return new class extends clsCadastro {
 
         $this->nome_url_cancelar = 'Cancelar';
 
-        $this->breadcrumb(currentPage: 'Vínculo do professor à turma', breadcrumbs: [
+        $this->breadcrumb('Vínculo do professor à turma', [
             'educar_servidores_index.php' => 'Servidores'
         ]);
 
@@ -99,23 +99,22 @@ return new class extends clsCadastro {
         $ano = null;
 
         if ($this->id) {
-            $objProfessorTurma = new clsModulesProfessorTurma(id: $this->id);
+            $objProfessorTurma = new clsModulesProfessorTurma($this->id);
             $detProfessorTurma = $objProfessorTurma->detalhe();
             $ano = $detProfessorTurma['ano'];
-            $this->ano = $ano; //o inputsHelper necessita do valor para poder filtrar as turmas deste ano
         }
 
         if (isset($_GET['copia'])) {
             $ano = null;
         }
 
-        $this->campoOculto(nome: 'id', valor: $this->id);
-        $this->campoOculto(nome: 'servidor_id', valor: $this->servidor_id);
-        $this->inputsHelper()->dynamic(helperNames: 'ano', inputOptions: ['value' => (is_null(value: $ano) ? date(format: 'Y') : $ano)]);
-        $this->inputsHelper()->dynamic(helperNames: ['instituicao', 'escola', 'curso', 'serie', 'turma']);
+        $this->campoOculto('id', $this->id);
+        $this->campoOculto('servidor_id', $this->servidor_id);
+        $this->inputsHelper()->dynamic('ano', ['value' => (is_null($ano) ? date('Y') : $ano)]);
+        $this->inputsHelper()->dynamic(['instituicao', 'escola', 'curso', 'serie', 'turma']);
 
         $obrigarCamposCenso = $this->validarCamposObrigatoriosCenso();
-        $this->campoOculto(nome: 'obrigar_campos_censo', valor: (int) $obrigarCamposCenso);
+        $this->campoOculto('obrigar_campos_censo', (int) $obrigarCamposCenso);
 
         $resources = SelectOptions::funcoesExercidaServidor();
         $options = [
@@ -123,7 +122,7 @@ return new class extends clsCadastro {
             'resources' => $resources,
             'value' => $this->funcao_exercida
         ];
-        $this->inputsHelper()->select(attrName: 'funcao_exercida', inputOptions: $options);
+        $this->inputsHelper()->select('funcao_exercida', $options);
 
         $helperOptions = ['objectName' => 'unidades_curriculares'];
         $options = [
@@ -136,7 +135,7 @@ return new class extends clsCadastro {
                 'all_values' => UnidadesCurriculares::getDescriptiveValues()
             ]
         ];
-        $this->inputsHelper()->multipleSearchCustom(attrName: '', inputOptions: $options, helperOptions: $helperOptions);
+        $this->inputsHelper()->multipleSearchCustom('', $options, $helperOptions);
 
         $resources = SelectOptions::tiposVinculoServidor();
         $options = [
@@ -145,7 +144,7 @@ return new class extends clsCadastro {
             'value' => $this->tipo_vinculo,
             'required' => false
         ];
-        $this->inputsHelper()->select(attrName: 'tipo_vinculo', inputOptions: $options);
+        $this->inputsHelper()->select('tipo_vinculo', $options);
 
         $options = [
             'label' => 'Turno',
@@ -159,11 +158,11 @@ return new class extends clsCadastro {
             'label_hint' => 'Preencha apenas se o servidor atuar em algum turno específico'
         ];
 
-        if ($this->tipoacao === 'Editar' && $this->existeLancamentoIDiario(professorId: $this->servidor_id, turmaId: $this->ref_cod_turma)) {
+        if ($this->tipoacao === 'Editar' && $this->existeLancamentoIDiario($this->servidor_id, $this->ref_cod_turma)) {
             $options['disabled'] = true;
         }
 
-        $this->inputsHelper()->select(attrName: 'turma_turno_id', inputOptions: $options);
+        $this->inputsHelper()->select('turma_turno_id', $options);
 
         $options = [
             'label' => 'Professor de área específica?',
@@ -171,15 +170,15 @@ return new class extends clsCadastro {
             'help' => 'Marque esta opção somente se o professor leciona uma disciplina específica na turma selecionada.'
         ];
 
-        $this->inputsHelper()->checkbox(attrName: 'permite_lancar_faltas_componente', inputOptions: $options);
-        $this->inputsHelper()->checkbox(attrName: 'selecionar_todos', inputOptions: ['label' => 'Selecionar/remover todos']);
-        $this->inputsHelper()->multipleSearchComponenteCurricular(attrName: null, inputOptions: ['label' => 'Componentes lecionados', 'required' => true], helperOptions: ['searchForArea' => true, 'allDisciplinesMulti' => true]);
+        $this->inputsHelper()->checkbox('permite_lancar_faltas_componente', $options);
+        $this->inputsHelper()->checkbox('selecionar_todos', ['label' => 'Selecionar/remover todos']);
+        $this->inputsHelper()->multipleSearchComponenteCurricular(null, ['label' => 'Componentes lecionados', 'required' => true], ['searchForArea' => true, 'allDisciplinesMulti' => true]);
 
         $scripts = [
-            '/vendor/legacy/Cadastro/Assets/Javascripts/ServidorVinculoTurma.js'
+            '/modules/Cadastro/Assets/Javascripts/ServidorVinculoTurma.js'
         ];
 
-        Portabilis_View_Helper_Application::loadJavascript(viewInstance: $this, files: $scripts);
+        Portabilis_View_Helper_Application::loadJavascript($this, $scripts);
     }
 
     public function Novo()
@@ -191,7 +190,7 @@ return new class extends clsCadastro {
         );
 
         $obj_permissoes = new clsPermissoes();
-        $obj_permissoes->permissao_cadastra(int_processo_ap: 635, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7, str_pagina_redirecionar: $backUrl);
+        $obj_permissoes->permissao_cadastra(635, $this->pessoa_logada, 7, $backUrl);
 
         if (!isset($this->ref_cod_turma)) {
             $this->mensagem = 'É necessário selecionar uma turma';
@@ -206,19 +205,17 @@ return new class extends clsCadastro {
             return false;
         }
 
-        $professorTurma = new clsModulesProfessorTurma(id: null, ano: $this->ano, instituicao_id: $this->ref_cod_instituicao, servidor_id: $this->servidor_id, turma_id: $this->ref_cod_turma, funcao_exercida: $this->funcao_exercida, tipo_vinculo: $this->tipo_vinculo, permite_lancar_faltas_componente: $this->permite_lancar_faltas_componente, turno_id: $this->turma_turno_id);
-        $id = $professorTurma->existe2();
-        if ($id) {
-            $link = "<a href=\"educar_servidor_vinculo_turma_det.php?id=$id\"><b>Acesse aqui</b></a>";
-            $this->mensagem = "Já existe um vínculo para o(a) professor(a) nesta turma na escola e ano letivo selecionado. $link";
+        $professorTurma = new clsModulesProfessorTurma(null, $this->ano, $this->ref_cod_instituicao, $this->servidor_id, $this->ref_cod_turma, $this->funcao_exercida, $this->tipo_vinculo, $this->permite_lancar_faltas_componente, $this->turma_turno_id);
+        if ($professorTurma->existe2()) {
+            $this->mensagem = 'Não é possível cadastrar pois já existe um vínculo com essa turma.<br>';
             return false;
         }
 
         $professorTurmaId = $professorTurma->cadastra();
-        $professorTurma->gravaComponentes(professor_turma_id: $professorTurmaId, componentes: $this->componentecurricular);
+        $professorTurma->gravaComponentes($professorTurmaId, $this->componentecurricular);
 
-        $this->mensagem = 'Cadastro efetuado com sucesso.<br>';
-        $this->simpleRedirect(url: $backUrl);
+        $this->mensagem .= 'Cadastro efetuado com sucesso.<br>';
+        $this->simpleRedirect($backUrl);
     }
 
     public function Editar()
@@ -230,21 +227,21 @@ return new class extends clsCadastro {
         );
 
         $obj_permissoes = new clsPermissoes();
-        $obj_permissoes->permissao_cadastra(int_processo_ap: 635, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7, str_pagina_redirecionar: $backUrl);
+        $obj_permissoes->permissao_cadastra(635, $this->pessoa_logada, 7, $backUrl);
 
-        $this->unidades_curriculares = $this->transformArrayInString(value: $this->unidades_curriculares);
+        $this->unidades_curriculares = $this->transformArrayInString($this->unidades_curriculares);
 
         $professorTurma = new clsModulesProfessorTurma(
-            id: $this->id,
-            ano: $this->ano,
-            instituicao_id: $this->ref_cod_instituicao,
-            servidor_id: $this->servidor_id,
-            turma_id: $this->ref_cod_turma,
-            funcao_exercida: $this->funcao_exercida,
-            tipo_vinculo: $this->tipo_vinculo,
-            permite_lancar_faltas_componente: $this->permite_lancar_faltas_componente,
-            turno_id: $this->turma_turno_id,
-            unidades_curriculares: $this->unidades_curriculares
+            $this->id,
+            $this->ano,
+            $this->ref_cod_instituicao,
+            $this->servidor_id,
+            $this->ref_cod_turma,
+            $this->funcao_exercida,
+            $this->tipo_vinculo,
+            $this->permite_lancar_faltas_componente,
+            $this->turma_turno_id,
+            $this->unidades_curriculares
         );
 
         if (!$this->validaCamposCenso()) {
@@ -255,19 +252,18 @@ return new class extends clsCadastro {
             return false;
         }
 
-        $id = $professorTurma->existe2();
-        if ($id) {
-            $link = "<a href=\"educar_servidor_vinculo_turma_det.php?id=$id\"><b>Acesse aqui</b></a>";
-            $this->mensagem = "Já existe um vínculo para o(a) professor(a) nesta turma na escola e ano letivo selecionado. $link";
+        if ($professorTurma->existe2()) {
+            $this->mensagem .= 'Não é possível cadastrar pois já existe um vínculo com essa turma.<br>';
+
             return false;
         }
 
         $editou = $professorTurma->edita();
 
         if ($editou) {
-            $professorTurma->gravaComponentes(professor_turma_id: $this->id, componentes: $this->componentecurricular);
-            $this->mensagem = 'Edição efetuada com sucesso.<br>';
-            $this->simpleRedirect(url: $backUrl);
+            $professorTurma->gravaComponentes($this->id, $this->componentecurricular);
+            $this->mensagem .= 'Edição efetuada com sucesso.<br>';
+            $this->simpleRedirect($backUrl);
         }
 
         $this->mensagem = 'Edição não realizada.<br>';
@@ -278,7 +274,7 @@ return new class extends clsCadastro {
     public function Excluir()
     {
         if (empty($this->id)) {
-            $this->simpleRedirect(url: url(path: '/intranet/educar_servidor_vinculo_turma_lst.php'));
+            $this->simpleRedirect(url('/intranet/educar_servidor_vinculo_turma_lst.php'));
         }
 
         $backUrl = sprintf(
@@ -288,14 +284,14 @@ return new class extends clsCadastro {
         );
 
         $obj_permissoes = new clsPermissoes();
-        $obj_permissoes->permissao_excluir(int_processo_ap: 635, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7, str_pagina_redirecionar: $backUrl);
+        $obj_permissoes->permissao_excluir(635, $this->pessoa_logada, 7, $backUrl);
 
-        $professorTurma = new clsModulesProfessorTurma(id: $this->id);
-        $professorTurma->excluiComponentes(professor_turma_id: $this->id);
+        $professorTurma = new clsModulesProfessorTurma($this->id);
+        $professorTurma->excluiComponentes($this->id);
         $professorTurma->excluir();
 
-        $this->mensagem = 'Exclusão efetuada com sucesso.<br>';
-        $this->simpleRedirect(url: $backUrl);
+        $this->mensagem .= 'Exclusão efetuada com sucesso.<br>';
+        $this->simpleRedirect($backUrl);
     }
 
     private function validaCamposCenso()
@@ -309,18 +305,18 @@ return new class extends clsCadastro {
 
     public function validaVinculoEscola()
     {
-        $instituicao = LegacyInstitution::find(id: $this->ref_cod_instituicao);
+        $instituicao = LegacyInstitution::find($this->ref_cod_instituicao);
 
         if (!$instituicao->bloquear_vinculo_professor_sem_alocacao_escola) {
             return true;
         }
 
         /** @var Employee $servidor */
-        $servidor = Employee::findOrFail(id: $this->servidor_id);
+        $servidor = Employee::findOrFail($this->servidor_id);
 
         $vinculoEscola = $servidor->schools()
-            ->where(column: 'ref_cod_escola', operator: $this->ref_cod_escola)
-            ->withPivotValue(column: 'ano', value: $this->ano)
+            ->where('ref_cod_escola', $this->ref_cod_escola)
+            ->withPivotValue('ano', $this->ano)
             ->exists();
 
         if ($vinculoEscola) {
@@ -334,7 +330,7 @@ return new class extends clsCadastro {
 
     private function validaFuncaoExercida()
     {
-        $obj_turma = new clsPmieducarTurma(cod_turma: $this->ref_cod_turma);
+        $obj_turma = new clsPmieducarTurma($this->ref_cod_turma);
         $turma = $obj_turma->detalhe();
 
         if (empty($turma)) {
@@ -348,14 +344,14 @@ return new class extends clsCadastro {
 
         $etapas_instrutor_educacao_pŕofissional = [30,31,32,33,34,39,40,73,74,64,67,68];
 
-        if ($this->funcao_exercida == FuncaoExercida::INSTRUTOR_EDUCACAO_PROFISSIONAL && (($turma['estrutura_curricular'] && !in_array(needle: '2', haystack: transformStringFromDBInArray(string: $turma['estrutura_curricular']), strict: true)) || !in_array(needle: $turma['etapa_educacenso'], haystack: $etapas_instrutor_educacao_pŕofissional, strict: true))){
-           $opcoes = \Str::replaceLast(search: ', ', replace: ' ou ', subject: implode(separator: ', ', array: $etapas_instrutor_educacao_pŕofissional));
+        if ($this->funcao_exercida == FuncaoExercida::INSTRUTOR_EDUCACAO_PROFISSIONAL && (($turma['estrutura_curricular'] && !in_array('2', transformStringFromDBInArray($turma['estrutura_curricular']), true)) || !in_array($turma['etapa_educacenso'],$etapas_instrutor_educacao_pŕofissional, true))){
+           $opcoes = \Str::replaceLast(', ',' ou ',implode(', ',$etapas_instrutor_educacao_pŕofissional));
            $this->mensagem = "O campo: <b>Função exercida</b> pode ser <b>Instrutor da Educação Profissional</b> apenas quando o campo <b>Estrutura Curricular</b> da turma for: <b>Itinerário formativo</b> e o campo <b>Etapa de ensino</b> for uma das opções: {$opcoes}.";
 
            return false;
         }
 
-        if ($turma['tipo_mediacao_didatico_pedagogico'] == TipoMediacaoDidaticoPedagogico::EDUCACAO_A_DISTANCIA && !in_array(needle: $this->funcao_exercida, haystack: $funcoesEad)) {
+        if ($turma['tipo_mediacao_didatico_pedagogico'] == TipoMediacaoDidaticoPedagogico::EDUCACAO_A_DISTANCIA && !in_array($this->funcao_exercida, $funcoesEad)) {
             $this->mensagem = 'O campo: <b>Função exercida</b> deve ser <b>Docente titular</b> ou <b>Docente tutor</b>, quando o campo: <b>Tipo de mediação didático-pedagógica</b> da turma for: <b>Educação a Distância</b>.';
 
             return false;
@@ -388,12 +384,12 @@ return new class extends clsCadastro {
     {
         try {
             /** @var iDiarioService $iDiarioService */
-            $iDiarioService = app(abstract: iDiarioService::class);
+            $iDiarioService = app(iDiarioService::class);
         } catch (RuntimeException) {
             return false;
         }
 
-        if ($iDiarioService->getTeacherClassroomsActivity(teacherId: $professorId, classroomId: $turmaId)) {
+        if ($iDiarioService->getTeacherClassroomsActivity($professorId, $turmaId)) {
             return true;
         }
 
@@ -402,7 +398,7 @@ return new class extends clsCadastro {
 
     private function transformArrayInString($value): ?string
     {
-        return is_array(value: $value) ? implode(separator: ',', array: $value) : null;
+        return is_array($value) ? implode(',', $value) : null;
     }
 
     public function Formular()

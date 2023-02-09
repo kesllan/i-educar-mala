@@ -2,17 +2,10 @@
 
 namespace App\Models;
 
-use App\Traits\Ativo;
-use App\Traits\HasInstitution;
-use App\Traits\HasLegacyDates;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 
-class LegacyRegimeType extends LegacyModel
+class LegacyRegimeType extends Model
 {
-    use Ativo;
-    use HasInstitution;
-    use HasLegacyDates;
-
     /**
      * @var string
      */
@@ -27,15 +20,11 @@ class LegacyRegimeType extends LegacyModel
      * @var array
      */
     protected $fillable = [
-        'ref_usuario_exc',
-        'ref_usuario_cad',
-        'nm_tipo',
-        'data_exclusao',
-        'ativo',
+        'ref_usuario_cad', 'nm_tipo', 'data_cadastro', 'ativo', 'ref_cod_instituicao',
     ];
 
-    public function courses(): HasMany
-    {
-        return $this->hasMany(LegacyCourse::class, 'ref_cod_tipo_regime');
-    }
+    /**
+     * @var bool
+     */
+    public $timestamps = false;
 }

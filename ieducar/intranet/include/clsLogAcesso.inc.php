@@ -64,7 +64,7 @@ class clsLogAcesso
     /**
      * Exibe uma lista baseada nos parametros de filtragem passados
      *
-     * @return array|false
+     * @return Array
      */
     public function lista($int_cod_pessoa=false, $str_ip_interno=false, $str_ip_externo=false, $date_inicio=false, $date_fim=false, $str_obs=false, $str_order_by='data_hora DESC', $int_limit_ini=0, $int_limit_qtd=20, $sucesso=null)
     {
@@ -145,7 +145,7 @@ class clsLogAcesso
     /**
      * Retorna um array com os detalhes do objeto
      *
-     * @return array|false
+     * @return Array
      */
     public function detalhe()
     {
@@ -153,7 +153,9 @@ class clsLogAcesso
             $db = new clsBanco();
             $db->Consulta("SELECT cod_acesso, ip_interno, ip_externo, data_hora, obs, cod_pessoa, sucesso FROM {$this->tabela} WHERE cod_acesso='{$this->cod_acesso}'");
             if ($db->ProximoRegistro()) {
-                return $db->Tupla();
+                $tupla = $db->Tupla();
+
+                return $tupla;
             }
         }
 

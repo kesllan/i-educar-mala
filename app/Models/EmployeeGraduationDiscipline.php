@@ -2,18 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 
-class EmployeeGraduationDiscipline extends LegacyModel
+class EmployeeGraduationDiscipline extends Model
 {
     public $timestamps = false;
-
-    protected $fillable = [
-        'name'
-    ];
-
-    public function employeeGraduations(): HasMany
-    {
-        return $this->hasMany(EmployeeGraduation::class, 'discipline_id');
-    }
 }

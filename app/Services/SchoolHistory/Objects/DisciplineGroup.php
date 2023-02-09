@@ -79,6 +79,11 @@ class DisciplineGroup
         $this->{"faltas_globalizadas{$column}"} = $generalAbsence;
     }
 
+    public function addColumnPromotion($column, $promotion)
+    {
+        $this->{"promocao{$column}"} = $promotion;
+    }
+
     public function addColumnStatus($column, $status)
     {
         $this->{"status_serie{$column}"} = $status;

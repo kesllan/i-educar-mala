@@ -2,22 +2,15 @@
 
 namespace App\Models;
 
-use App\Traits\Ativo;
-use App\Traits\HasInstitution;
-use App\Traits\HasLegacyDates;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class LegacyDisciplineExemption
  *
  * @property LegacyRegistration $registration
  */
-class LegacyExemptionType extends LegacyModel
+class LegacyExemptionType extends Model
 {
-    use Ativo;
-    use HasLegacyDates;
-    use HasInstitution;
-
     /**
      * @var string
      */
@@ -33,20 +26,19 @@ class LegacyExemptionType extends LegacyModel
         'ref_usuario_cad',
         'nm_tipo',
         'descricao',
+        'data_cadastro',
         'data_exclusao',
         'ativo',
+        'ref_cod_instituicao',
     ];
 
-    public array $legacy = [
-        'id' => 'cod_tipo_dispensa',
-        'name' => 'nm_tipo',
-        'description' => 'descricao',
-        'deleted_at' => 'data_exclusao',
-        'active' => 'ativo'
-    ];
+    /**
+     * @var bool
+     */
+    public $timestamps = false;
 
-    public function disciplineExemptions(): HasMany
+    public function __toString()
     {
-        return $this->hasMany(LegacyDisciplineExemption::class, 'ref_cod_tipo_dispensa');
+        return $this->nm_tipo;
     }
 }

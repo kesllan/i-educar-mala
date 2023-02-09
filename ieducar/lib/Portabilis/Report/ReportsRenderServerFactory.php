@@ -163,6 +163,8 @@ class Portabilis_Report_ReportsRenderServerFactory extends Portabilis_Report_Rep
             throw new Exception($json['error'] ?? $json['message']);
         }
 
-        return base64_decode($json['data']['file']);
+        $report = base64_decode($json['data']['file']);
+
+        return $report;
     }
 }

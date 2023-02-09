@@ -2,30 +2,26 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\SoftDeletes\LegacySoftDeletes;
-use App\Traits\HasInstitution;
-use App\Traits\HasLegacyDates;
-use App\Traits\HasLegacyUserAction;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 
-class LegacyRole extends LegacyModel
+class LegacyRole extends Model
 {
-    use LegacySoftDeletes;
-    use HasLegacyDates;
-    use HasLegacyUserAction;
-    use HasInstitution;
-
     protected $table = 'pmieducar.funcao';
-
     protected $primaryKey = 'cod_funcao';
-
     protected $fillable = [
+        'cod_funcao',
+        'ref_usuario_exc',
+        'ref_usuario_cad',
         'nm_funcao',
         'abreviatura',
         'professor',
+        'data_cadastro',
+        'data_exclusao',
+        'ativo',
+        'ref_cod_instituicao',
     ];
+    public $timestamps = false;
 
     public function scopeAtivo(Builder $query): Builder
     {
@@ -37,15 +33,17 @@ class LegacyRole extends LegacyModel
         return $query->where('professor', 1);
     }
 
-    protected function id(): Attribute
+    public function getIdAttribute(): int
     {
-        return Attribute::make(
-            get: fn () => $this->cod_funcao
-        );
+        return $this->cod_funcao;
     }
 
-    public function employeeRoles(): HasMany
+    protected static function boot()
     {
-        return $this->hasMany(LegacyEmployeeRole::class, 'ref_cod_funcao');
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->data_cadastro = now();
+        });
     }
 }

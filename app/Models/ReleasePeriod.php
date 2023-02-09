@@ -3,9 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReleasePeriod extends Model
 {
@@ -18,7 +15,7 @@ class ReleasePeriod extends Model
     /**
      * The roles that belong to the user.
      */
-    public function schools(): BelongsToMany
+    public function schools()
     {
         return $this->belongsToMany(
             LegacySchool::class,
@@ -28,26 +25,17 @@ class ReleasePeriod extends Model
         );
     }
 
-    /**
-     * @return HasMany
-     */
-    public function periodDates(): HasMany
+    public function periodDates()
     {
         return $this->hasMany(ReleasePeriodDate::class);
     }
 
-    /**
-     * @return BelongsTo
-     */
-    public function stageType(): BelongsTo
+    public function stageType()
     {
         return $this->belongsTo(LegacyStageType::class, 'stage_type_id');
     }
 
-    /**
-     * @return array
-     */
-    public function getDatesArray(): array
+    public function getDatesArray()
     {
         $dates = $this->periodDates;
 

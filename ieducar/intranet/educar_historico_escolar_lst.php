@@ -1,10 +1,34 @@
 <?php
 
 return new class extends clsListagem {
+    /**
+     * Referencia pega da session para o idpes do usuario atual
+     *
+     * @var int
+     */
     public $pessoa_logada;
+
+    /**
+     * Titulo no topo da pagina
+     *
+     * @var int
+     */
     public $titulo;
+
+    /**
+     * Quantidade de registros a ser apresentada em cada pagina
+     *
+     * @var int
+     */
     public $limite;
+
+    /**
+     * Inicio dos registros a serem exibidos (limit)
+     *
+     * @var int
+     */
     public $offset;
+
     public $ref_cod_aluno;
     public $ano;
 
@@ -16,7 +40,7 @@ return new class extends clsListagem {
             $this->$var = $val;
         }
 
-        $this->campoOculto(nome: 'ref_cod_aluno', valor: $this->ref_cod_aluno);
+        $this->campoOculto('ref_cod_aluno', $this->ref_cod_aluno);
 
         if (!$this->ref_cod_aluno) {
             $this->simpleRedirect('educar_aluno_lst.php');
@@ -40,10 +64,10 @@ return new class extends clsListagem {
         include('include/pmieducar/educar_campo_lista.php');
 
         // outros Filtros
-        $this->campoNumero(nome: 'ano', campo: 'Ano', valor: $this->ano, tamanhovisivel: 4, tamanhomaximo: 4);
+        $this->campoNumero('ano', 'Ano', $this->ano, 4, 4, false);
 
         $opcoes = [ '' => 'Selecione', 2 => 'Não', 1 => 'Sim' ];
-        $this->campoLista(nome: 'extra_curricular', campo: 'Extra-curricular', valor: $opcoes, default: $this->extra_curricular, obrigatorio: false);
+        $this->campoLista('extra_curricular', 'Extra-curricular', $opcoes, $this->extra_curricular, '', false, '', '', false, false);
 
         if ($this->extra_curricular == 2) {
             $this->extra_curricular = 0;
@@ -54,14 +78,32 @@ return new class extends clsListagem {
 
         $obj_historico_escolar = new clsPmieducarHistoricoEscolar();
         $obj_historico_escolar->setOrderby('ano, sequencial ASC');
-        $obj_historico_escolar->setLimite(intLimiteQtd: $this->limite, intLimiteOffset: $this->offset);
+        $obj_historico_escolar->setLimite($this->limite, $this->offset);
 
         $lista = $obj_historico_escolar->lista(
-            int_ref_cod_aluno: $this->ref_cod_aluno,
-            int_ano: $this->ano,
-            int_ativo: 1,
-            int_ref_cod_instituicao: $this->ref_cod_instituicao,
-            int_extra_curricular: $this->extra_curricular
+            $this->ref_cod_aluno,
+            null,
+            null,
+            null,
+            null,
+            $this->ano,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            1,
+            null,
+            $this->ref_cod_instituicao,
+            null,
+            $this->extra_curricular,
+            null
         );
 
         $total = $obj_historico_escolar->_total;
@@ -98,7 +140,7 @@ return new class extends clsListagem {
                 $this->addLinhas($lista_busca);
             }
         }
-        $this->addPaginador2(strUrl: 'educar_historico_escolar_lst.php', intTotalRegistros: $total, mixVariaveisMantidas: $_GET, nome: $this->nome, intResultadosPorPagina: $this->limite);
+        $this->addPaginador2('educar_historico_escolar_lst.php', $total, $_GET, $this->nome, $this->limite);
         $obj_permissoes = new clsPermissoes();
         $this->obj_permissao = new clsPermissoes();
         $this->nivel_usuario = $this->obj_permissao->nivel_acesso($this->pessoa_logada);
@@ -131,7 +173,7 @@ return new class extends clsListagem {
             }
         }
 
-        $permissaoCadastra = $obj_permissoes->permissao_cadastra(int_processo_ap: 578, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7);
+        $permissaoCadastra = $obj_permissoes->permissao_cadastra(578, $this->pessoa_logada, 7);
         $historicoRestringido = Portabilis_Date_Utils::brToPgSQL($historico_restringido);
         $nivelUsuarioSuperior = ($this->nivel_usuario == 1 || $this->nivel_usuario == 2);
 
@@ -144,7 +186,7 @@ return new class extends clsListagem {
 
         $this->largura = '100%';
 
-        $this->breadcrumb(currentPage: 'Atualização de históricos escolares', breadcrumbs: [
+        $this->breadcrumb('Atualização de históricos escolares', [
             url('intranet/educar_index.php') => 'Escola',
         ]);
     }

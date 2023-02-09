@@ -1499,8 +1499,7 @@ class Avaliacao_Service_Boletim implements CoreExt_Configurable
     {
         $regraNotaNumerica = $this->getRegraAvaliacaoTipoNota() == RegraAvaliacao_Model_Nota_TipoValor::NUMERICA;
         $media = $regraNotaNumerica ? $mediaComponente->mediaArredondada : $mediaComponente->media;
-
-        return (float) $media;
+        return empty($media) ? 0 : $media;
     }
 
     /**

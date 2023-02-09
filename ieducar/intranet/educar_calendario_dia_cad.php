@@ -5,6 +5,7 @@ use Illuminate\Http\RedirectResponse;
 
 return new class extends clsCadastro {
     public $pessoa_logada;
+
     public $ref_cod_calendario_ano_letivo;
     public $mes;
     public $dia;
@@ -17,11 +18,22 @@ return new class extends clsCadastro {
     public $ativo;
     public $ano;
     public $ref_cod_escola;
-    public $_calendarioTurmaDataMapper;
 
+    /**
+     * @var Calendario_Model_TurmaDataMapper
+     */
+    public $_calendarioTurmaDataMapper = null;
+
+    /**
+     * Getter.
+     *
+     * @access protected
+     *
+     * @return Calendario_Model_TurmaDataMapper
+     */
     public function _getCalendarioTurmaDataMapper()
     {
-        if (is_null(value: $this->_calendarioTurmaDataMapper)) {
+        if (is_null($this->_calendarioTurmaDataMapper)) {
             $this->_calendarioTurmaDataMapper = new Calendario_Model_TurmaDataMapper();
         }
 
@@ -44,15 +56,15 @@ return new class extends clsCadastro {
     public function _hasEntry($codCalendarioAnoLetivo, $mes, $dia, $ano, $codTurma)
     {
         $args = [
-            'calendarioAnoLetivo' => $codCalendarioAnoLetivo,
-            'mes'                 => $mes,
-            'dia'                 => $dia,
-            'ano'                 => $ano,
-            'turma'               => $codTurma
-        ];
+      'calendarioAnoLetivo' => $codCalendarioAnoLetivo,
+      'mes'                 => $mes,
+      'dia'                 => $dia,
+      'ano'                 => $ano,
+      'turma'               => $codTurma
+    ];
 
         try {
-            $this->_getCalendarioTurmaDataMapper()->find(pkey: $args);
+            $this->_getCalendarioTurmaDataMapper()->find($args);
 
             return true;
         } catch (Exception) {
@@ -77,13 +89,13 @@ return new class extends clsCadastro {
     public function _getEntries($codCalendarioAnoLetivo, $mes, $dia, $ano)
     {
         $where = [
-            'calendarioAnoLetivo' => $codCalendarioAnoLetivo,
-            'mes'                 => $mes,
-            'dia'                 => $dia,
-            'ano'                 => $ano
-        ];
+      'calendarioAnoLetivo' => $codCalendarioAnoLetivo,
+      'mes'                 => $mes,
+      'dia'                 => $dia,
+      'ano'                 => $ano
+    ];
 
-        $turmas = $this->_getCalendarioTurmaDataMapper()->findAll(where: $where);
+        $turmas = $this->_getCalendarioTurmaDataMapper()->findAll([], $where);
 
         $ret = [];
         foreach ($turmas as $turma) {
@@ -103,19 +115,19 @@ return new class extends clsCadastro {
 
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(
-            int_processo_ap: 620,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: 'educar_calendario_dia_lst.php'
+            620,
+            $this->pessoa_logada,
+            7,
+            'educar_calendario_dia_lst.php'
         );
 
-        if (is_numeric(value: $this->ref_cod_calendario_ano_letivo) &&
-            is_numeric(value: $this->mes) && is_numeric(value: $this->dia)
-        ) {
+        if (is_numeric($this->ref_cod_calendario_ano_letivo) &&
+      is_numeric($this->mes) && is_numeric($this->dia)
+    ) {
             $obj = new clsPmieducarCalendarioDia(
-                ref_cod_calendario_ano_letivo: $this->ref_cod_calendario_ano_letivo,
-                mes: $this->mes,
-                dia: $this->dia
+                $this->ref_cod_calendario_ano_letivo,
+                $this->mes,
+                $this->dia
             );
 
             $registro  = $obj->detalhe();
@@ -128,7 +140,7 @@ return new class extends clsCadastro {
 
                 $obj_permissoes = new clsPermissoes();
 
-                if ($obj_permissoes->permissao_excluir(int_processo_ap: 620, int_idpes_usuario: $this->pessoa_logada, int_soma_nivel_acesso: 7)) {
+                if ($obj_permissoes->permissao_excluir(620, $this->pessoa_logada, 7)) {
                     if ($this->descricao) {
                         $this->fexcluir = true;
                     }
@@ -137,7 +149,7 @@ return new class extends clsCadastro {
                 $retorno = 'Editar';
             }
 
-            $objTemp = new clsPmieducarCalendarioAnoLetivo(cod_calendario_ano_letivo: $this->ref_cod_calendario_ano_letivo);
+            $objTemp = new clsPmieducarCalendarioAnoLetivo($this->ref_cod_calendario_ano_letivo);
             $det = $objTemp->detalhe();
             $this->ano = $det['ano'];
         }
@@ -158,102 +170,118 @@ return new class extends clsCadastro {
     {
         // Primary keys
         $this->campoRotulo(
-            nome: 'dia_',
-            campo: 'Dia',
-            valor: sprintf('<b>%d/%d/%d</b>', $this->dia, $this->mes, $this->ano)
+            'dia_',
+            'Dia',
+            sprintf('<b>%d/%d/%d</b>', $this->dia, $this->mes, $this->ano)
         );
 
         $this->campoOculto(
-            nome: 'ref_cod_calendario_ano_letivo',
-            valor: $this->ref_cod_calendario_ano_letivo
+            'ref_cod_calendario_ano_letivo',
+            $this->ref_cod_calendario_ano_letivo
         );
 
         $obj_calendario_ano_letivo = new clsPmieducarCalendarioAnoLetivo(
-            cod_calendario_ano_letivo: $this->ref_cod_calendario_ano_letivo
+            $this->ref_cod_calendario_ano_letivo
         );
 
         $det_calendario_ano_letivo = $obj_calendario_ano_letivo->detalhe();
         $ref_cod_escola = $det_calendario_ano_letivo['ref_cod_escola'];
 
-        $this->campoRotulo(nome: 'ano', campo: 'Ano Letivo', valor: $this->ano);
-        $this->campoOculto(nome: 'mes', valor: $this->mes);
-        $this->campoOculto(nome: 'dia', valor: $this->dia);
+        $this->campoRotulo('ano', 'Ano Letivo', $this->ano);
+
+        $this->campoOculto('mes', $this->mes);
+        $this->campoOculto('dia', $this->dia);
 
         // Foreign keys
         $opcoes = ['' => 'Selecione'];
         $objTemp = new clsPmieducarCalendarioDiaMotivo();
         $lista = $objTemp->lista(
-            int_ref_cod_escola: $ref_cod_escola,
-            int_ativo: 1
+            null,
+            $ref_cod_escola,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            1
         );
 
-        if (is_array(value: $lista) && count(value: $lista)) {
+        if (is_array($lista) && count($lista)) {
             foreach ($lista as $registro) {
                 $opcoes[$registro['cod_calendario_dia_motivo']] = $registro['nm_motivo'];
             }
         }
 
         $this->campoLista(
-            nome: 'ref_cod_calendario_dia_motivo',
-            campo: 'Calendário Dia Motivo',
-            valor: $opcoes,
-            default: $this->ref_cod_calendario_dia_motivo,
-            obrigatorio: false
+            'ref_cod_calendario_dia_motivo',
+            'Calendário Dia Motivo',
+            $opcoes,
+            $this->ref_cod_calendario_dia_motivo,
+            '',
+            false,
+            '',
+            '',
+            false,
+            false
         );
 
         $seletor = '<label><input id="_turmas_sel" onclick="new ied_forms.checkAll(document, \'formcadastro\', \'turmas\')" type="checkbox" /> Selecionar todas</label>';
-        $this->campoRotulo(nome: 'turmas_rotulo', campo: 'Turmas', valor: $seletor);
-        $turmas = App_Model_IedFinder::getTurmas(escolaId: $ref_cod_escola, ano: $this->ano);
+        $this->campoRotulo('turmas_rotulo', 'Turmas', $seletor);
+        $turmas = App_Model_IedFinder::getTurmas($ref_cod_escola, null, $this->ano);
 
         foreach ($turmas as $codTurma => $nomeTurma) {
             $checked = $this->_hasEntry(
-                codCalendarioAnoLetivo: $this->ref_cod_calendario_ano_letivo,
-                mes: $this->mes,
-                dia: $this->dia,
-                ano: $this->ano,
-                codTurma: $codTurma
+                $this->ref_cod_calendario_ano_letivo,
+                $this->mes,
+                $this->dia,
+                $this->ano,
+                $codTurma
             );
 
-            $this->campoCheck(nome: 'turmas[' . $codTurma  . ']', campo: '', valor: $checked, desc: $nomeTurma);
+            $this->campoCheck('turmas[' . $codTurma  . ']', '', $checked, $nomeTurma, false);
         }
 
-        $this->campoMemo(nome: 'descricao', campo: 'Descrição', valor: $this->descricao, colunas: 30, linhas: 10, obrigatorio: true);
+        $this->campoMemo('descricao', 'Descrição', $this->descricao, 30, 10, true);
     }
 
     public function Novo()
     {
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(
-            int_processo_ap: 620,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: 'educar_calendario_dia_lst.php'
+            620,
+            $this->pessoa_logada,
+            7,
+            'educar_calendario_dia_lst.php'
         );
 
         $obj = new clsPmieducarCalendarioDia(
-            ref_cod_calendario_ano_letivo: $this->ref_cod_calendario_ano_letivo,
-            mes: $this->mes,
-            dia: $this->dia,
-            ref_usuario_exc: $this->pessoa_logada,
-            ref_usuario_cad: $this->pessoa_logada,
-            ref_cod_calendario_dia_motivo: $this->ref_cod_calendario_dia_motivo,
-            descricao: $this->descricao,
-            data_cadastro: $this->data_cadastro,
-            data_exclusao: $this->data_exclusao,
-            ativo: $this->ativo
+            $this->ref_cod_calendario_ano_letivo,
+            $this->mes,
+            $this->dia,
+            $this->pessoa_logada,
+            $this->pessoa_logada,
+            $this->ref_cod_calendario_dia_motivo,
+            $this->descricao,
+            $this->data_cadastro,
+            $this->data_exclusao,
+            $this->ativo
         );
 
         $cadastrou = $obj->cadastra();
 
         foreach ($this->turmas as $codTurma => $turma) {
-            $calendarioTurma = new Calendario_Model_Turma(options: [
-                'calendarioAnoLetivo' => $this->ref_cod_calendario_ano_letivo,
-                'ano'                 => $this->ano,
-                'mes'                 => $this->mes,
-                'dia'                 => $this->dia,
-                'turma'               => $codTurma
-            ]);
-            $this->_getCalendarioTurmaDataMapper()->save(instance: $calendarioTurma);
+            $calendarioTurma = new Calendario_Model_Turma([
+        'calendarioAnoLetivo' => $this->ref_cod_calendario_ano_letivo,
+        'ano'                 => $this->ano,
+        'mes'                 => $this->mes,
+        'dia'                 => $this->dia,
+        'turma'               => $codTurma
+      ]);
+            $this->_getCalendarioTurmaDataMapper()->save($calendarioTurma);
         }
 
         if ($cadastrou) {
@@ -266,7 +294,7 @@ return new class extends clsCadastro {
                 $this->ref_cod_calendario_ano_letivo
             );
             throw new HttpResponseException(
-                response: new RedirectResponse(url: $url)
+                new RedirectResponse($url)
             );
         }
 
@@ -279,23 +307,23 @@ return new class extends clsCadastro {
     {
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(
-            int_processo_ap: 620,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: 'educar_calendario_dia_lst.php'
+            620,
+            $this->pessoa_logada,
+            7,
+            'educar_calendario_dia_lst.php'
         );
 
         $obj = new clsPmieducarCalendarioDia(
-            ref_cod_calendario_ano_letivo: $this->ref_cod_calendario_ano_letivo,
-            mes: $this->mes,
-            dia: $this->dia,
-            ref_usuario_exc: $this->pessoa_logada,
-            ref_usuario_cad: $this->pessoa_logada,
-            ref_cod_calendario_dia_motivo: $this->ref_cod_calendario_dia_motivo,
-            descricao: $this->descricao,
-            data_cadastro: $this->data_cadastro,
-            data_exclusao: $this->data_exclusao,
-            ativo: 1
+            $this->ref_cod_calendario_ano_letivo,
+            $this->mes,
+            $this->dia,
+            $this->pessoa_logada,
+            $this->pessoa_logada,
+            $this->ref_cod_calendario_dia_motivo,
+            $this->descricao,
+            $this->data_cadastro,
+            $this->data_exclusao,
+            1
         );
 
         $editou = $obj->edita();
@@ -305,40 +333,40 @@ return new class extends clsCadastro {
 
         if (isset($this->turmas)) {
             foreach ($this->turmas as $codTurma => $turma) {
-                $calendarioTurma = new Calendario_Model_Turma(options: [
-                    'calendarioAnoLetivo' => $this->ref_cod_calendario_ano_letivo,
-                    'ano'                 => $this->ano,
-                    'mes'                 => $this->mes,
-                    'dia'                 => $this->dia,
-                    'turma'               => $codTurma
-                ]);
+                $calendarioTurma = new Calendario_Model_Turma([
+          'calendarioAnoLetivo' => $this->ref_cod_calendario_ano_letivo,
+          'ano'                 => $this->ano,
+          'mes'                 => $this->mes,
+          'dia'                 => $this->dia,
+          'turma'               => $codTurma
+        ]);
                 $insert[$codTurma] = $calendarioTurma;
             }
         }
 
         // Instâncias persistidas de Calendario_Model_Turma
         $entries = $this->_getEntries(
-            codCalendarioAnoLetivo: $this->ref_cod_calendario_ano_letivo,
-            mes: $this->mes,
-            dia: $this->dia,
-            ano: $this->ano
+            $this->ref_cod_calendario_ano_letivo,
+            $this->mes,
+            $this->dia,
+            $this->ano
         );
 
         // Instâncias para apagar
-        $delete = array_diff(array_keys(array: $entries), array_keys(array: $insert));
+        $delete = array_diff(array_keys($entries), array_keys($insert));
 
         // Instâncias já persistidas
-        $intersect = array_intersect(array_keys(array: $entries), array_keys(array: $insert));
+        $intersect = array_intersect(array_keys($entries), array_keys($insert));
 
         foreach ($delete as $id) {
-            $this->_getCalendarioTurmaDataMapper()->delete(instance: $entries[$id]);
+            $this->_getCalendarioTurmaDataMapper()->delete($entries[$id]);
         }
 
         foreach ($insert as $key => $entry) {
-            if (in_array(needle: $key, haystack: $intersect)) {
+            if (in_array($key, $intersect)) {
                 continue;
             }
-            $this->_getCalendarioTurmaDataMapper()->save(instance: $entry);
+            $this->_getCalendarioTurmaDataMapper()->save($entry);
         }
 
         if ($editou) {
@@ -351,7 +379,7 @@ return new class extends clsCadastro {
                 $this->ref_cod_calendario_ano_letivo
             );
             throw new HttpResponseException(
-                response: new RedirectResponse(url: $url)
+                new RedirectResponse($url)
             );
         }
 
@@ -364,34 +392,36 @@ return new class extends clsCadastro {
     {
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_excluir(
-            int_processo_ap: 620,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: 'educar_calendario_dia_lst.php'
+            620,
+            $this->pessoa_logada,
+            7,
+            'educar_calendario_dia_lst.php'
         );
 
         $obj = new clsPmieducarCalendarioDia(
-            ref_cod_calendario_ano_letivo: $this->ref_cod_calendario_ano_letivo,
-            mes: $this->mes,
-            dia: $this->dia,
-            ref_usuario_exc: $this->pessoa_logada,
-            ref_usuario_cad: $this->pessoa_logada,
-            data_cadastro: $this->data_cadastro,
-            data_exclusao: $this->data_exclusao,
-            ativo: 0
+            $this->ref_cod_calendario_ano_letivo,
+            $this->mes,
+            $this->dia,
+            $this->pessoa_logada,
+            $this->pessoa_logada,
+            null,
+            null,
+            $this->data_cadastro,
+            $this->data_exclusao,
+            0
         );
 
         $excluiu = $obj->edita();
 
         $entries = $this->_getEntries(
-            codCalendarioAnoLetivo: $this->ref_cod_calendario_ano_letivo,
-            mes: $this->mes,
-            dia: $this->dia,
-            ano: $this->ano
+            $this->ref_cod_calendario_ano_letivo,
+            $this->mes,
+            $this->dia,
+            $this->ano
         );
 
         foreach ($entries as $entry) {
-            $this->_getCalendarioTurmaDataMapper()->delete(instance: $entry);
+            $this->_getCalendarioTurmaDataMapper()->delete($entry);
         }
 
         if ($excluiu) {
@@ -404,7 +434,7 @@ return new class extends clsCadastro {
                 $this->ref_cod_calendario_ano_letivo
             );
             throw new HttpResponseException(
-                response: new RedirectResponse(url: $url)
+                new RedirectResponse($url)
             );
         }
 

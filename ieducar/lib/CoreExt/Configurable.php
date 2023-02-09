@@ -5,6 +5,7 @@ interface CoreExt_Configurable
     /**
      * Setter.
      *
+     * @param array $options
      *
      * @return CoreExt_Configurable Provê interface fluída
      */

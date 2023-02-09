@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\LegacyDisciplinaryOccurrenceType;
-
 return new class extends clsDetalhe {
     public $titulo;
     public $cod_tipo_ocorrencia_disciplinar;
@@ -21,7 +19,8 @@ return new class extends clsDetalhe {
 
         $this->cod_tipo_ocorrencia_disciplinar=$_GET['cod_tipo_ocorrencia_disciplinar'];
 
-        $registro = LegacyDisciplinaryOccurrenceType::find($this->cod_tipo_ocorrencia_disciplinar)?->getAttributes();
+        $tmp_obj = new clsPmieducarTipoOcorrenciaDisciplinar($this->cod_tipo_ocorrencia_disciplinar);
+        $registro = $tmp_obj->detalhe();
 
         if (! $registro) {
             $this->simpleRedirect('educar_tipo_ocorrencia_disciplinar_lst.php');

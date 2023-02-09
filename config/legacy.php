@@ -49,7 +49,6 @@ return [
     */
 
     'migrations' => [
-        env('LEGACY_SEED_DATA', true) ? database_path('migrations/data') : database_path('migrations/nothing'),
         database_path('migrations/extras'),
         database_path('migrations/legacy'),
     ],
@@ -192,7 +191,7 @@ return [
             'show_details' => true,
             'track' => false,
             'tracker_name' => 'EMAIL',
-            'honeybadger_key' => env('HONEYBADGER_API_KEY', ''),
+            'honeybadger_key' => '',
             'email_recipient' => '',
         ],
     ],

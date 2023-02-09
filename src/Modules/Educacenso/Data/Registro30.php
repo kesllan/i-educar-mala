@@ -61,11 +61,14 @@ class Registro30 extends AbstractRegistro
             $this->modelArray[$data->codigoPessoa] = $this->model;
         }
 
+        $unconsideredKnowledgeArea = [32, 99];
+
         foreach ($this->modelArray as &$record) {
             $record->formacaoAnoConclusao = Portabilis_Utils_Database::pgArrayToArray($record->formacaoAnoConclusao);
             $record->formacaoCurso = Portabilis_Utils_Database::pgArrayToArray($record->formacaoCurso);
             $record->formacaoInstituicao = Portabilis_Utils_Database::pgArrayToArray($record->formacaoInstituicao);
-            $record->complementacaoPedagogica = Portabilis_Utils_Database::pgArrayToArray($record->complementacaoPedagogica);
+            $record->formacaoComponenteCurricular = Portabilis_Utils_Database::pgArrayToArray($record->formacaoComponenteCurricular);
+            $record->formacaoComponenteCurricular = array_diff($record->formacaoComponenteCurricular, $unconsideredKnowledgeArea);
         }
 
         return $this->modelArray;

@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Support\Database\DateSerializer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Place extends Model
 {
@@ -21,23 +20,13 @@ class Place extends Model
         'complement',
         'neighborhood',
         'postal_code',
-        'latitude',
-        'longitude'
     ];
 
     /**
      * @return BelongsTo
      */
-    public function city(): BelongsTo
+    public function city()
     {
         return $this->belongsTo(City::class);
-    }
-
-    /**
-     * @return HasMany
-     */
-    public function personHasPlace(): HasMany
-    {
-        return $this->hasMany(PersonHasPlace::class);
     }
 }

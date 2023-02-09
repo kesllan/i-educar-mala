@@ -10,21 +10,21 @@ abstract class CoreExt_Controller_Abstract implements CoreExt_Controller_Interfa
      *
      * @var CoreExt_Controller_Request_Interface
      */
-    protected $_request;
+    protected $_request = null;
 
     /**
      * Uma instância de CoreExt_Session_Abstract
      *
      * @var CoreExt_Session_Abstract
      */
-    protected $_session;
+    protected $_session = null;
 
     /**
      * Uma instância de CoreExt_Controller_Dispatcher_Interface
      *
      * @var CoreExt_Controller_Dispatcher_Interface
      */
-    protected $_dispatcher;
+    protected $_dispatcher = null;
 
     protected $_options = [];
 
@@ -83,6 +83,7 @@ abstract class CoreExt_Controller_Abstract implements CoreExt_Controller_Interfa
     /**
      * Setter.
      *
+     * @param CoreExt_Controller_Request_Interface $request
      *
      * @return CoreExt_Controller_Interface
      */
@@ -114,6 +115,7 @@ abstract class CoreExt_Controller_Abstract implements CoreExt_Controller_Interfa
     /**
      * Setter.
      *
+     * @param CoreExt_Session_Abstract $session
      *
      * @return CoreExt_Controller_Interface
      */
@@ -144,6 +146,7 @@ abstract class CoreExt_Controller_Abstract implements CoreExt_Controller_Interfa
     /**
      * Setter.
      *
+     * @param CoreExt_Controller_Dispatcher_Interface $dispatcher
      *
      * @return CoreExt_Controller_Interface Provê interface fluída
      */
@@ -194,6 +197,8 @@ abstract class CoreExt_Controller_Abstract implements CoreExt_Controller_Interfa
      * Função de redirecionamento simples que leva em consideração
      * o status code.
      *
+     * @param string $url
+     * @param int    $code
      *
      * @return void
      *
@@ -212,9 +217,6 @@ abstract class CoreExt_Controller_Abstract implements CoreExt_Controller_Interfa
         if (empty($codes[$code])) {
             $code = 302;
         }
-
-        ob_end_flush();
-        ob_get_clean();
 
         throw new HttpResponseException(
             new RedirectResponse($url, $code)

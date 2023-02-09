@@ -22,8 +22,9 @@ class Portabilis_View_Helper_Input_Resource_SimpleSearchDistrito extends Portabi
     {
         if ($id) {
             $district = District::query()->find($id);
+            $distrito = $id . ' - ' . $district->name;
 
-            return $id . ' - ' . $district->name;
+            return $distrito;
         }
     }
 
@@ -34,7 +35,7 @@ class Portabilis_View_Helper_Input_Resource_SimpleSearchDistrito extends Portabi
 
     protected function loadAssets()
     {
-        $jsFile = '/vendor/legacy/Portabilis/Assets/Javascripts/Frontend/Inputs/Resource/SimpleSearchDistrito.js';
+        $jsFile = '/modules/Portabilis/Assets/Javascripts/Frontend/Inputs/Resource/SimpleSearchDistrito.js';
         Portabilis_View_Helper_Application::loadJavascript($this->viewInstance, $jsFile);
     }
 }

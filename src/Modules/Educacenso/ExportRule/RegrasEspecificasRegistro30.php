@@ -71,7 +71,7 @@ class RegrasEspecificasRegistro30 implements EducacensoExportRule
         }
 
         if (!$registro30->isTeacher()) {
-            $registro30->complementacaoPedagogica = null;
+            $registro30->formacaoComponenteCurricular = null;
         }
 
         if (!$registro30->isManager()) {

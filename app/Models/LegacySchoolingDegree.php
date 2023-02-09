@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 
-class LegacySchoolingDegree extends LegacyModel
+class LegacySchoolingDegree extends Model
 {
     /**
      * @var string
@@ -16,41 +16,15 @@ class LegacySchoolingDegree extends LegacyModel
      */
     protected $primaryKey = 'idesco';
 
-    public static function boot()
-    {
-        parent::boot();
-        static::creating(static function (self $legacySchoolingDegree) {
-            $legacySchoolingDegree->idesco = self::query()->max('idesco') + 1;
-        });
-    }
-
     /**
      * @var array
      */
     protected $fillable = [
-        'idesco',
-        'descricao',
-        'escolaridade',
-    ];
-
-    public array $legacy = [
-        'id' => 'idesco',
-        'description' => 'descricao',
-        'schooling' => 'escolaridade',
+        'idesco', 'descricao', 'escolaridade',
     ];
 
     /**
      * @var bool
      */
     public $timestamps = false;
-
-    public function employees(): HasMany
-    {
-        return $this->hasMany(Employee::class, 'ref_idesco');
-    }
-
-    public function individuals(): HasMany
-    {
-        return $this->hasMany(LegacyIndividual::class, 'idesco');
-    }
 }

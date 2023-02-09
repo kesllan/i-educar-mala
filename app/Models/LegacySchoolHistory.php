@@ -2,17 +2,11 @@
 
 namespace App\Models;
 
-use App\Traits\HasInstitution;
-use App\Traits\HasLegacyDates;
-use App\Traits\HasLegacyUserAction;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class LegacySchoolHistory extends LegacyModel
+class LegacySchoolHistory extends Model
 {
-    use HasInstitution;
-    use HasLegacyDates;
-    use HasLegacyUserAction;
-
     /**
      * @var string
      */
@@ -21,6 +15,8 @@ class LegacySchoolHistory extends LegacyModel
     protected $fillable = [
         'ref_cod_aluno',
         'sequencial',
+        'ref_usuario_exc',
+        'ref_usuario_cad',
         'ano',
         'carga_horaria',
         'dias_letivos',
@@ -29,13 +25,16 @@ class LegacySchoolHistory extends LegacyModel
         'escola_uf',
         'observacao',
         'aprovado',
+        'data_cadastro',
         'data_exclusao',
         'ativo',
         'faltas_globalizadas',
+        'promocao',
         'nm_serie',
         'origem',
         'extra_curricular',
         'ref_cod_matricula',
+        'ref_cod_instituicao',
         'import',
         'frequencia',
         'registro',
@@ -52,13 +51,8 @@ class LegacySchoolHistory extends LegacyModel
     /**
      * @return BelongsTo
      */
-    public function student(): BelongsTo
+    public function student()
     {
-        return $this->belongsTo(LegacyStudent::class, 'ref_cod_aluno');
-    }
-
-    public function school(): void
-    {
-        $this->belongsTo(LegacySchool::class, 'ref_cod_escola');
+        return $this->belongsTo(LegacyStudent::class, 'cod_aluno');
     }
 }

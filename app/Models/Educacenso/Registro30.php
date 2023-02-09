@@ -114,7 +114,7 @@ class Registro30 implements RegistroEducacenso
 
     public $formacaoInstituicao;
 
-    public $complementacaoPedagogica;
+    public $formacaoComponenteCurricular;
 
     public $posGraduacoes;
 

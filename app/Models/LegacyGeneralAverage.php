@@ -27,8 +27,6 @@ class LegacyGeneralAverage extends Model
      */
     public $timestamps = false;
 
-    public $primaryKey = 'nota_aluno_id';
-
     /**
      * @return BelongsTo
      */

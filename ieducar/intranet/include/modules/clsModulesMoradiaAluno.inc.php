@@ -65,7 +65,7 @@ class clsModulesMoradiaAluno extends Model
         $fossa = null,
         $lixo = null
     ) {
-
+        $db = new clsBanco();
         $this->_schema = 'modules.';
         $this->_tabela = "{$this->_schema}moradia_aluno";
 
@@ -393,7 +393,6 @@ class clsModulesMoradiaAluno extends Model
         if (is_numeric($this->ref_cod_aluno)) {
             $db = new clsBanco();
             $set = '';
-            $gruda = '';
 
             if (is_numeric($this->ref_cod_aluno)) {
                 $set .= "{$gruda}ref_cod_aluno = '{$this->ref_cod_aluno}'";
@@ -553,18 +552,19 @@ class clsModulesMoradiaAluno extends Model
     /**
      * Retorna uma lista de registros filtrados de acordo com os parâmetros.
      *
-     * @return array|false
+     * @return array
      */
     public function lista()
     {
         $sql = "SELECT {$this->_campos_lista} FROM {$this->_tabela}";
         $filtros = '';
+        $whereAnd = ' WHERE ';
 
         $db = new clsBanco();
         $countCampos = count(explode(',', $this->_campos_lista)) + 2;
         $resultado = [];
 
-        $sql .= $filtros . $this->getOrderby() . $this->getLimite();
+        $sql .= $filtros . $whereNomes . $this->getOrderby() . $this->getLimite();
 
         $this->_total = $db->CampoUnico("SELECT COUNT(0) FROM {$this->_tabela} {$filtros}");
 
@@ -592,7 +592,7 @@ class clsModulesMoradiaAluno extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function detalhe()
     {
@@ -610,7 +610,7 @@ class clsModulesMoradiaAluno extends Model
     /**
      * Retorna um array com os dados de um registro.
      *
-     * @return array|false
+     * @return array
      */
     public function existe()
     {

@@ -68,8 +68,8 @@ class clsAgenda
         if (count($nomeArr) > 1) {
             $nome .= ' ' . $nomeArr[ count($nomeArr) - 1 ];
         }
-        $nome = str_replace("'", "''", $nome);
-        $db->Consulta("INSERT INTO portal.agenda ( ref_ref_cod_pessoa_cad, ref_ref_cod_pessoa_own, nm_agenda, data_cad ) VALUES ( $this->cod_pessoa_dono, $this->cod_pessoa_dono, quote_literal('{$nome}') , NOW() )");
+
+        $db->Consulta("INSERT INTO portal.agenda ( ref_ref_cod_pessoa_cad, ref_ref_cod_pessoa_own, nm_agenda, data_cad ) VALUES ( $this->cod_pessoa_dono, $this->cod_pessoa_dono, '{$nome}', NOW() )");
         $this->agenda = $db->InsertId('agenda_cod_agenda_seq');
 
         $this->publica = 0;
@@ -239,6 +239,7 @@ class clsAgenda
             $verifica = true;
 
             $versaoAtual = $db->CampoUnico("SELECT MAX( versao ) FROM portal.agenda_compromisso WHERE cod_agenda_compromisso = '{$cod_compromisso}'");
+            $versaoNova = $versaoAtual + 1;
             $campos = '';
             $valores = '';
             // faz as verificacoes dos campos postados
@@ -288,6 +289,7 @@ class clsAgenda
             if (preg_match('/[0-9]{2}:[0-9]{2}/', $hora_fim)) {
                 // pega a versao da nota
                 $versaoAtual = $db->CampoUnico("SELECT MAX( versao ) FROM portal.agenda_compromisso WHERE cod_agenda_compromisso = '{$cod_compromisso}'");
+                $versaoNova = $versaoAtual + 1;
 
                 // pega os dados da nota
                 $db->Consulta("SELECT data_inicio, titulo, descricao, importante, publico FROM portal.agenda_compromisso WHERE cod_agenda_compromisso = '{$cod_compromisso}' AND versao = '{$versaoAtual}'");
@@ -372,7 +374,9 @@ class clsAgenda
     {
         $db = new clsBanco();
         if ($this->compromissoPertenceAgenda($cod_compromisso)) {
-            return $db->CampoUnico("SELECT MAX( versao ) FROM portal.agenda_compromisso WHERE cod_agenda_compromisso = '{$cod_compromisso}'");
+            $maxVersao = $db->CampoUnico("SELECT MAX( versao ) FROM portal.agenda_compromisso WHERE cod_agenda_compromisso = '{$cod_compromisso}'");
+
+            return $maxVersao;
         }
 
         return 0;
@@ -399,7 +403,7 @@ class clsAgenda
 
     public function add_compromisso_externo_1()
     {
-
+        $db = new clsBanco();
         // seleciona os dados
         //$db->Consulta();
         if ($this->time_atual) {
@@ -410,7 +414,7 @@ class clsAgenda
                     if ($encaminha['ref_cod_juris_processo'] && $encaminha['ref_versao_processo']) {
                         $objProcesso = new clsProcesso($encaminha['ref_cod_juris_processo'], $encaminha['ref_versao_processo']);
                         $detalheProcesso = $objProcesso->detalhe();
-                        if ($detalheProcesso['ativo'] == 1 && !$detalheProcesso['ref_pessoa_finalizadora']) {
+                        if ($detalheProcesso['ativo'] == 1 && !$detalheProcesso['ref_pessoa_finalizadora'] && $qtd<3) {
                             $temp_arr_compromisso2['data_inicio'] = $detalheProcesso['data_envio'];
                             $temp_arr_compromisso2['versao'] = '1';
                             $temp_arr_compromisso2['data_fim'] =$detalheProcesso['data_envio'];
@@ -427,7 +431,7 @@ class clsAgenda
                         $detalheTramite = $objTramite->detalhe();
                         $objProcesso = new clsProcesso($detalheTramite['ref_cod_juris_processo'], $detalheTramite['ref_versao_processo']);
                         $detalheProcesso = $objProcesso->detalhe();
-                        if ($detalheTramite['ativo'] == 1 && !$detalheProcesso['ref_pessoa_finalizadora']) {
+                        if ($detalheTramite['ativo'] == 1 && !$detalheProcesso['ref_pessoa_finalizadora'] && $qtd<3) {
                             $temp_arr_compromisso2['data_inicio'] = $detalheProcesso['data_envio'];
                             $temp_arr_compromisso2['versao'] = '1';
                             $temp_arr_compromisso2['data_fim'] =$detalheProcesso['data_envio'];

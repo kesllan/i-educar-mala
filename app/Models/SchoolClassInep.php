@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -27,17 +26,15 @@ class SchoolClassInep extends Model
         'updated_at'
     ];
 
-    protected function number(): Attribute
+    public function getNumberAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->cod_turma_inep,
-        );
+        return $this->cod_turma_inep;
     }
 
     /**
      * @return BelongsTo
      */
-    public function schoolClass(): BelongsTo
+    public function schoolClass()
     {
         return $this->belongsTo(LegacySchoolClass::class, 'cod_turma', 'cod_turma');
     }

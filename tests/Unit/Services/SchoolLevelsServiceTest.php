@@ -3,10 +3,10 @@
 namespace Tests\Unit\Services;
 
 use App\Models\LegacyEvaluationRule;
-use App\Models\LegacyGrade;
+use App\Models\LegacyLevel;
 use App\Services\SchoolLevelsService;
 use Database\Factories\LegacyEvaluationRuleFactory;
-use Database\Factories\LegacyGradeFactory;
+use Database\Factories\LegacyLevelFactory;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
@@ -24,7 +24,7 @@ class SchoolLevelsServiceTest extends TestCase
         parent::setUp();
         $this->service = app(SchoolLevelsService::class);
         $this->disableForeignKeys();
-        LegacyGrade::query()->truncate();
+        LegacyLevel::query()->truncate();
         LegacyEvaluationRule::query()->truncate();
     }
 
@@ -37,8 +37,8 @@ class SchoolLevelsServiceTest extends TestCase
     public function testRetornaRegrasAvaliacao()
     {
         $regraAvaliacaoFake = LegacyEvaluationRuleFactory::new()->create();
-        /** @var LegacyGrade $level */
-        $level = LegacyGradeFactory::new()->create();
+        /** @var LegacyLevel $level */
+        $level = LegacyLevelFactory::new()->create();
 
         $level->evaluationRules()->attach($regraAvaliacaoFake->id, ['ano_letivo' => 2019]);
 
@@ -50,7 +50,7 @@ class SchoolLevelsServiceTest extends TestCase
 
     public function testSemRegrasDeveRetornarVazio()
     {
-        $level = LegacyGradeFactory::new()->create();
+        $level = LegacyLevelFactory::new()->create();
         $evaluationRules = $this->service->getEvaluationRules($level->cod_serie);
         $this->assertEmpty($evaluationRules);
     }
@@ -60,11 +60,11 @@ class SchoolLevelsServiceTest extends TestCase
         $result = $this->service->levelAllowDefineDisciplinePerStage(null, 2019);
         $this->assertFalse($result);
 
-        $level = LegacyGradeFactory::new()->create();
+        $level = LegacyLevelFactory::new()->create();
         $result = $this->service->levelAllowDefineDisciplinePerStage($level->cod_serie, 2019);
         $this->assertFalse($result);
 
-        $level = LegacyGradeFactory::new()->create();
+        $level = LegacyLevelFactory::new()->create();
         $regraAvaliacaoFake = LegacyEvaluationRuleFactory::new()->create([
             'definir_componente_etapa' => true,
         ]);
@@ -75,7 +75,7 @@ class SchoolLevelsServiceTest extends TestCase
 
     public function testRegraAvaliacaoPermiteDefinirComponentesEtapa()
     {
-        $level = LegacyGradeFactory::new()->create();
+        $level = LegacyLevelFactory::new()->create();
         $regraAvaliacaoFake = LegacyEvaluationRuleFactory::new()->create([
             'definir_componente_etapa' => true,
         ]);
@@ -85,7 +85,7 @@ class SchoolLevelsServiceTest extends TestCase
 
         $this->assertTrue($result);
 
-        $level = LegacyGradeFactory::new()->create();
+        $level = LegacyLevelFactory::new()->create();
         $regraAvaliacaoFake = LegacyEvaluationRuleFactory::new()->create([
             'definir_componente_etapa' => false,
         ]);

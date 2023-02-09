@@ -26,8 +26,7 @@ class LegacyEmployeeFactory extends Factory
                 return LegacyIndividualFactory::new()->create()->idpes;
             },
             'matricula' => $this->faker->randomDigitNotNull(),
-            'senha' => $this->faker->password(),
-            'email' => $this->faker->email(),
+            'senha' => $this->faker->randomDigitNotNull(),
             'ativo' => 1
         ];
     }

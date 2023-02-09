@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property LegacyRegistration $registration
  * @property int                id
  */
-class LegacyActiveLooking extends LegacyModel
+class LegacyActiveLooking extends Model
 {
     use SoftDeletes;
 
@@ -29,22 +30,15 @@ class LegacyActiveLooking extends LegacyModel
         'data_fim',
         'observacoes',
         'resultado_busca_ativa',
+        'updated_at',
+        'deleted_at'
     ];
 
     protected $dates = [
         'data_inicio',
-        'data_fim',
+        'data_exclusao',
         'updated_at',
-        'created_at',
-        'deleted_at'
-    ];
-
-    public array $legacy = [
-        'registration_id' => 'ref_cod_matricula',
-        'start' => 'data_inicio',
-        'end' => 'data_fim',
-        'obs' => 'observacoes',
-        'result' => 'resultado_busca_ativa',
+        'data_fim'
     ];
 
     /**

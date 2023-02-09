@@ -20,23 +20,29 @@ return new class extends clsCadastro {
     {
         $retorno = 'Novo';
 
-        $this->cod_servidor = $this->getQueryString(name: 'ref_cod_servidor');
-        $this->ref_cod_instituicao = $this->getQueryString(name: 'ref_cod_instituicao');
-        $this->ref_cod_funcao = $this->getQueryString(name: 'cod_funcao');
+        $this->cod_servidor = $this->getQueryString('ref_cod_servidor');
+        $this->ref_cod_instituicao = $this->getQueryString('ref_cod_instituicao');
+        $this->ref_cod_funcao = $this->getQueryString('cod_funcao');
 
         $obj_permissoes = new clsPermissoes();
 
         $obj_permissoes->permissao_cadastra(
-            int_processo_ap: 635,
-            int_idpes_usuario: $this->pessoa_logada,
-            int_soma_nivel_acesso: 7,
-            str_pagina_redirecionar: 'educar_servidor_lst.php'
+            635,
+            $this->pessoa_logada,
+            7,
+            'educar_servidor_lst.php'
         );
 
-        if (is_numeric(value: $this->cod_servidor) && is_numeric(value: $this->ref_cod_instituicao)) {
+        if (is_numeric($this->cod_servidor) && is_numeric($this->ref_cod_instituicao)) {
             $obj = new clsPmieducarServidor(
-                cod_servidor: $this->cod_servidor,
-                ref_cod_instituicao: $this->ref_cod_instituicao
+                $this->cod_servidor,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                $this->ref_cod_instituicao
             );
 
             $registro = $obj->detalhe();
@@ -45,7 +51,7 @@ return new class extends clsCadastro {
             }
         }
 
-        $funcoes = Session::get(key: "servant:{$this->cod_servidor}", default: []);
+        $funcoes = Session::get("servant:{$this->cod_servidor}", []);
         $funcoes = $funcoes[$this->ref_cod_funcao] ?? [];
 
         foreach ($funcoes as $curso => $disciplinas) {
@@ -70,14 +76,37 @@ return new class extends clsCadastro {
 
     public function Gerar()
     {
-        $this->campoOculto(nome: 'ref_cod_instituicao', valor: $this->ref_cod_instituicao);
+        $this->campoOculto('ref_cod_instituicao', $this->ref_cod_instituicao);
         $opcoes = $opcoes_curso = ['' => 'Selecione'];
 
         $obj_cursos = new clsPmieducarCurso();
-        $obj_cursos->setOrderby(strNomeCampo: 'nm_curso');
+        $obj_cursos->setOrderby('nm_curso');
         $lst_cursos = $obj_cursos->lista(
-            int_ativo: 1,
-            int_ref_cod_instituicao: $this->ref_cod_instituicao
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            1,
+            null,
+            $this->ref_cod_instituicao
         );
 
         if ($lst_cursos) {
@@ -103,14 +132,14 @@ return new class extends clsCadastro {
         }
 
         if ($this->ref_cod_curso) {
-            $cursosDifferente = array_unique(array: $this->ref_cod_curso);
+            $cursosDifferente = array_unique($this->ref_cod_curso);
             foreach ($cursosDifferente as $curso) {
                 $obj_componentes = new clsModulesComponenteCurricular;
-                $componentes = $obj_componentes->listaComponentesPorCurso(instituicao_id: $this->ref_cod_instituicao, curso: $curso);
+                $componentes = $obj_componentes->listaComponentesPorCurso($this->ref_cod_instituicao, $curso);
                 $opcoes_disc = [];
                 $opcoes_disc['todas_disciplinas'] = 'Todas as disciplinas';
 
-                $total_componentes = count(value: $componentes);
+                $total_componentes = count($componentes);
                 for ($i = 0; $i < $total_componentes; $i++) {
                     $opcoes_disc[$componentes[$i]['id']] = $componentes[$i]['nome'];
                 }
@@ -122,30 +151,36 @@ return new class extends clsCadastro {
         }
 
         $this->campoTabelaInicio(
-            nome: 'funcao',
-            titulo: 'Componentes Curriculares',
-            arr_campos: ['Curso', 'Componente Curricular'],
-            arr_valores: $arr_valores,
-            array_valores_lista: $lst_opcoes
+            'funcao',
+            'Componentes Curriculares',
+            ['Curso', 'Componente Curricular'],
+            $arr_valores,
+            '',
+            $lst_opcoes
         );
 
         // Cursos
         $this->campoLista(
-            nome: 'ref_cod_curso',
-            campo: 'Curso',
-            valor: $opcoes_curso,
-            default: $this->ref_cod_curso,
-            acao: 'trocaCurso(this)',
-            duplo: ''
+            'ref_cod_curso',
+            'Curso',
+            $opcoes_curso,
+            $this->ref_cod_curso,
+            'trocaCurso(this)',
+            '',
+            '',
+            ''
         );
 
         // Disciplinas
         $this->campoLista(
-            nome: 'ref_cod_disciplina',
-            campo: 'Componente Curricular',
-            valor: $opcoes,
-            default: $this->ref_cod_disciplina,
-            duplo: ''
+            'ref_cod_disciplina',
+            'Componente Curricular',
+            $opcoes,
+            $this->ref_cod_disciplina,
+            '',
+            '',
+            '',
+            ''
         );
 
         $this->campoTabelaFim();
@@ -153,18 +188,18 @@ return new class extends clsCadastro {
 
     public function Novo()
     {
-        $cod_servidor = $this->getQueryString(name: 'ref_cod_servidor');
-        $cod_funcao = $this->getQueryString(name: 'cod_funcao');
+        $cod_servidor = $this->getQueryString('ref_cod_servidor');
+        $cod_funcao = $this->getQueryString('cod_funcao');
 
-        $funcoes = Session::get(key: "servant:{$cod_servidor}", default: []);
+        $funcoes = Session::get("servant:{$cod_servidor}", []);
 
         unset($funcoes[$cod_funcao]);
 
         if ($this->ref_cod_curso) {
-            for ($i = 0, $loop = count(value: $this->ref_cod_curso); $i < $loop; $i++) {
+            for ($i = 0, $loop = count($this->ref_cod_curso); $i < $loop; $i++) {
                 if ($this->ref_cod_disciplina[$i] === 'todas_disciplinas') {
                     $componenteAnoDataMapper = new ComponenteCurricular_Model_AnoEscolarDataMapper();
-                    $componentes = $componenteAnoDataMapper->findComponentePorCurso(cursoId: $this->ref_cod_curso[$i]);
+                    $componentes = $componenteAnoDataMapper->findComponentePorCurso($this->ref_cod_curso[$i]);
 
                     foreach ($componentes as $componente) {
                         $funcoes[$cod_funcao][$this->ref_cod_curso[$i]][] = $componente->id;
@@ -175,7 +210,7 @@ return new class extends clsCadastro {
             }
         }
 
-        Session::put(key: "servant:{$cod_servidor}", value: $funcoes);
+        Session::put("servant:{$cod_servidor}", $funcoes);
         Session::save();
         Session::start();
 
@@ -185,7 +220,7 @@ return new class extends clsCadastro {
 
     public function Editar()
     {
-        $this->Novo();
+        return $this->Novo();
     }
 
     public function Excluir()
@@ -195,7 +230,7 @@ return new class extends clsCadastro {
 
     public function makeExtra()
     {
-        return file_get_contents(filename: __DIR__ . '/scripts/extra/educar-servidor-disciplina-lst.js');
+        return file_get_contents(__DIR__ . '/scripts/extra/educar-servidor-disciplina-lst.js');
     }
 
     public function Formular()
