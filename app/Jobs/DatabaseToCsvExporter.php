@@ -13,41 +13,43 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class DatabaseToCsvExporter implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
-    * @var int
-    */
+     * @var int
+     */
     public $timeout = 1800;
 
     /**
-    * @var Export
-    */
+     * @var Export
+     */
     private $export;
 
     /**
-    * @var EloquentExporter
-    */
+     * @var EloquentExporter
+     */
     private $exporter;
 
     /**
-    * Create a new job instance.
-    *
-    * @param Export $export
-    */
+     * Create a new job instance.
+     *
+     * @param Export $export
+     */
     public function __construct(Export $export)
     {
         $this->export = $export;
     }
 
     /**
-    * @return EloquentExporter
-    */
+     * @return EloquentExporter
+     */
     public function getExporter()
     {
         if (empty($this->exporter)) {
@@ -58,10 +60,10 @@ class DatabaseToCsvExporter implements ShouldQueue
     }
 
     /**
-    * @param Export $export
-    *
-    * @return string
-    */
+     * @param Export $export
+     *
+     * @return string
+     */
     public function transformTenantFilename(Export $export)
     {
         return sprintf(
@@ -73,85 +75,67 @@ class DatabaseToCsvExporter implements ShouldQueue
     }
 
     /**
-    * @param string $filename
-    *
-    * @return string
-    */
+     * @param string $filename
+     *
+     * @return string
+     */
     public function transformTenantUrl($filename)
     {
         return Storage::url($filename);
     }
 
     /**
-    * @param EloquentExporter $exporter
-    *
-    * @return string
-    */
+     * @param EloquentExporter $exporter
+     *
+     * @return string
+     */
     public function getMessageToNotification(EloquentExporter $exporter)
     {
         return "Foram exportados {$exporter->getExportCount()} registros. Clique aqui para fazer download do arquivo {$this->export->filename}.";
     }
 
     /**
-    * Execute the job.
-    *
-    * @param NotificationService $notification
-    * @param DatabaseManager     $manager
-    *
-    * @throws FileNotFoundException
-    *
-    * @return void
-    */
+     * Execute the job.
+     *
+     * @param NotificationService $notification
+     * @param DatabaseManager     $manager
+     *
+     * @throws FileNotFoundException
+     *
+     * @return void
+     */
     public function handle(NotificationService $notification, DatabaseManager $manager)
     {
+        $manager->setDefaultConnection(
+            $sftp = $this->export->getConnectionName()
+        );
+
         $exporter = $this->getExporter();
 
         $file = $this->export->hash;
 
-        $reportData = DB::select($exporter->query());
+        $manager->unprepared(
+            "COPY ({$exporter->query()}) TO '/tmp/{$file}' CSV HEADER;"
+        );
 
-        $csvColumns = [];
+        Storage::disk()->put(
+            $filename = $this->transformTenantFilename($this->export),
+            Storage::disk($sftp)->get("/tmp/{$file}")
+        );
 
-        if($reportData) {
-            foreach ($reportData[0] as $key => $value) {
-                array_push($csvColumns,$key);
-            }
+        Storage::disk($sftp)->delete("/tmp/{$file}");
 
-            $fileCsv = fopen(Storage::path($file), 'w');
+        $url = $this->transformTenantUrl($filename);
 
-            fputcsv($fileCsv, $csvColumns);
+        $notification->createByUser(
+            $this->export->user_id,
+            $this->getMessageToNotification($exporter),
+            $url,
+            NotificationType::EXPORT_STUDENT
+        );
 
-            foreach ($reportData as $data) {
-                $csvRow = [];
-
-                foreach ($data as $key => $value) {
-                    array_push($csvRow,$value);
-                }
-
-                fputcsv($fileCsv, $csvRow);
-            }
-
-            fclose($fileCsv);
-
-            if (Storage::exists($file)) {
-                Storage::put(
-                    $filename = $this->transformTenantFilename($this->export),
-                    Storage::get($file)
-                );
-                Storage::delete($file);
-                $url = $this->transformTenantUrl($filename);
-
-                $notification->createByUser(
-                    $this->export->user_id,
-                    $this->getMessageToNotification($exporter),
-                    $url,
-                    NotificationType::EXPORT_STUDENT
-                );
-            }
-
-            $this->export->url = $url;
-            $this->export->save();
-        }
+        $this->export->url = $url;
+        $this->export->save();
     }
 
     public function tags()
