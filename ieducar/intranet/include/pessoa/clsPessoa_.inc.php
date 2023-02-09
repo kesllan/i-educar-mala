@@ -158,8 +158,13 @@ class clsPessoa_
         }
 
         if (is_string($str_data_cad_ini)) {
-            $where .= "{$whereAnd}data_cad >= '$str_data_cad_ini'";
-            $whereAnd = ' AND ';
+            if (!$str_data_edicao_fim) {
+                $where .= "{$whereAnd}data_cad >= '$str_data_cad_ini 00:00:00' AND data_cad <= '$str_data_cad_ini 23:59:59'";
+                $whereAnd = ' AND ';
+            } else {
+                $where .= "{$whereAnd}data_cad >= '$str_data_cad_ini'";
+                $whereAnd = ' AND ';
+            }
         }
 
         if (is_string($str_data_cad_fim)) {

@@ -226,8 +226,7 @@ class LegacyCreateTestsCommand extends Command
             'educar_matricula_modalidade_ensino.php',
             'educar_busca_ativa_lst.php',
             'educar_busca_ativa_cad.php',
-            'migra_alunos.php',
-            'index.php',
+            'migra_alunos.php'
         ];
     }
 

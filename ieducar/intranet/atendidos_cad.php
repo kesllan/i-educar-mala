@@ -1089,6 +1089,8 @@ return new class extends clsCadastro {
 
                 return false;
             }
+
+            return false;
         } else {
             $this->objPhoto = null;
 

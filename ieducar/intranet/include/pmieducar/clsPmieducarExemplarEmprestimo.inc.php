@@ -123,7 +123,6 @@ class clsPmieducarExemplarEmprestimo extends Model
     {
         if (is_numeric($this->cod_emprestimo)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_usuario_devolucao)) {

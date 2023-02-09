@@ -84,7 +84,6 @@ class clsPmieducarSeriePreRequisito extends Model
     {
         if (is_numeric($this->ref_cod_pre_requisito) && is_numeric($this->ref_cod_operador) && is_numeric($this->ref_cod_serie)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_string($this->valor)) {

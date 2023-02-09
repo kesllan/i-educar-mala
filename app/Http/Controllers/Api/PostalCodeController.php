@@ -28,8 +28,6 @@ class PostalCodeController extends Controller
      */
     public function search(Client $http, $postalCode)
     {
-        $postalCode = intval($postalCode);
-
         try {
             $response = $http->get("https://viacep.com.br/ws/{$postalCode}/json/");
         } catch (Throwable $throwable) {

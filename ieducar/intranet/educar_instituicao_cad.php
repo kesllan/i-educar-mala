@@ -153,7 +153,7 @@ return new class extends clsCadastro {
                 false
             );
             foreach ($orgaosRegionais as $orgaoRegional) {
-                $opcoes[strtoupper($orgaoRegional->codigo)] = strtoupper($orgaoRegional->codigo);
+                $opcoes[$orgaoRegional->codigo] = $orgaoRegional->codigo;
             }
         } else {
             $opcoes = [null => 'Informe uma UF'];

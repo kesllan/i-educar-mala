@@ -130,11 +130,6 @@ class Person extends Model
         return 'Pessoas';
     }
 
-    public function getDescription()
-    {
-        return 'Exportação de pessoas';
-    }
-
     /**
      * @param string $column
      *

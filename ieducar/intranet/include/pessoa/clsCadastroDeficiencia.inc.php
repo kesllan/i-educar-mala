@@ -106,7 +106,6 @@ class clsCadastroDeficiencia extends Model
         if (is_numeric($this->cod_deficiencia)) {
             $db = new clsBanco();
             $set = '';
-            $gruda = '';
 
             if (is_string($this->nm_deficiencia)) {
                 $set .= "{$gruda}nm_deficiencia = '{$this->nm_deficiencia}'";

@@ -248,7 +248,7 @@ return new class extends clsCadastro {
                     }
 
                     if ($this->alocacao_array) {
-                        $tamanho = count($this->alocacao_array);
+                        $tamanho = sizeof($alocacao);
                         $script  = "<script>\nvar num_alocacao = {$tamanho};\n";
                         $script .= "var array_servidores = Array();\n";
 

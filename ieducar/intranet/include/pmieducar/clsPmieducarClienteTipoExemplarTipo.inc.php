@@ -75,7 +75,6 @@ class clsPmieducarClienteTipoExemplarTipo extends Model
     {
         if (is_numeric($this->ref_cod_cliente_tipo) && is_numeric($this->ref_cod_exemplar_tipo)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->dias_emprestimo)) {

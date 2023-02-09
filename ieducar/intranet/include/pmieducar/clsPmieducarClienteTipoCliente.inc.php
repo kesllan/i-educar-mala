@@ -115,7 +115,6 @@ class clsPmieducarClienteTipoCliente extends Model
     {
         if (is_numeric($this->ref_cod_cliente_tipo) && is_numeric($this->ref_cod_cliente) && is_numeric($this->ref_usuario_exc) && is_numeric($this->ativo)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             $set .= "{$gruda}data_exclusao = NOW()";
@@ -147,7 +146,6 @@ class clsPmieducarClienteTipoCliente extends Model
     {
         if (is_numeric($this->ref_cod_cliente_tipo) && is_numeric($this->ref_cod_cliente) && is_numeric($this->ref_usuario_exc) && is_numeric($this->ativo)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             $set .= "{$gruda}data_exclusao = NOW()";
@@ -182,7 +180,6 @@ class clsPmieducarClienteTipoCliente extends Model
     {
         if (is_numeric($this->ref_cod_cliente_tipo) && is_numeric($this->ref_cod_cliente) && is_numeric($this->ref_usuario_exc) && is_numeric($this->ativo) && is_numeric($this->ref_cod_biblioteca) && $ref_cod_biblioteca_atual) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             $set .= "{$gruda}data_exclusao = NOW()";

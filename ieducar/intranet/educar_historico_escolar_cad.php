@@ -24,7 +24,7 @@ return new class extends clsCadastro {
 
     public $escola_cidade;
 
-    public $escola_uf;
+    public $escola_uf;  
 
     public $observacao;
 
@@ -53,6 +53,8 @@ return new class extends clsCadastro {
     public $faltas_globalizadas;
 
     public $cb_faltas_globalizadas;
+
+    public $promocao;
 
     public $frequencia;
 
@@ -225,15 +227,18 @@ return new class extends clsCadastro {
         $this->campoNumero('carga_horaria', 'Carga Horária', $this->carga_horaria, 8, 8, false);
         $this->campoCheck('cb_faltas_globalizadas', 'Faltas Globalizadas', is_numeric($this->faltas_globalizadas) ? 'on' : '');
         $this->campoNumero('faltas_globalizadas', 'Faltas Globalizadas', $this->faltas_globalizadas, 4, 4, false);
-        $this->campoNumero('dias_letivos', 'Dias Letivos', $this->dias_letivos, 3, 3, false);
+        $this->campoNumero('promocao', 'Mínimo Para Promoção', $this->promocao, 3, 3, false);
+        $this->campoNumero('dias_letivos', 'Dias Letivos', $this->dias_letivos, 3, 3, false);        
         $this->campoMonetario('frequencia', 'Frequência', $this->frequencia, 8, 6, false);
         $this->campoCheck('extra_curricular', 'Extra-Curricular', $this->extra_curricular);
         $this->campoCheck('aceleracao', 'Aceleração', $this->aceleracao);
+       
 
         $obs_options = [
             'required' => false,
             'label' => 'Observação',
-            'value' => $this->observacao
+            'value' => $this->observacao,
+        	'placeholder' => 'Use a TAG <b> para destacar em negrito. Ex.: <b>texto</b>',
         ];
         $this->inputsHelper()->textArea('observacao', $obs_options);
 
@@ -287,7 +292,7 @@ return new class extends clsCadastro {
         $this->campoLista('tipo_base', 'Base curricular', $tipoBase, $this->tipo_base, '', false, '', '', false, false);
         $this->campoTexto('nota', 'Nota', $this->nota, 10, 255, false);
         $this->campoNumero('faltas', 'Faltas', $this->faltas, 3, 3, false);
-        $this->campoNumero('carga_horaria_disciplina', 'carga_horaria_disciplina', $this->carga_horaria_disciplina, 3, 3, false, null, null, null, null, null, $habilitaCargaHoraria);
+        $this->campoNumero('carga_horaria_disciplina', 'carga_horaria_disciplina', $this->carga_horaria_disciplina, 6, 6, false, null, null, null, null, null, $habilitaCargaHoraria);
         $this->campoNumero('ordenamento', 'ordenamento', $this->ordenamento, 3, 3, false);
         $options = ['label' => 'Dependência', 'value' => $this->disciplinaDependencia];
         $this->inputsHelper()->checkbox('disciplinaDependencia', $options);
@@ -319,7 +324,7 @@ return new class extends clsCadastro {
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(578, $this->pessoa_logada, 7, "educar_historico_escolar_lst.php?ref_cod_aluno={$this->ref_cod_aluno}");
 
-        $this->carga_horaria = is_numeric($this->carga_horaria) ? intval($this->carga_horaria) : $this->carga_horaria;
+        $this->carga_horaria = is_numeric($this->carga_horaria) ? doubleval($this->carga_horaria) : $this->carga_horaria;
         $this->frequencia = $this->fixupFrequencia($this->frequencia);
         $this->extra_curricular = is_null($this->extra_curricular) ? 0 : 1;
 
@@ -334,13 +339,14 @@ return new class extends clsCadastro {
             $this->dias_letivos,
             mb_strtoupper($this->escola),
             mb_strtoupper($this->escola_cidade),
-            $this->escola_uf,
+            $this->escola_uf,            
             $this->observacao,
             $this->aprovado,
             null,
             null,
             1,
             $this->faltas_globalizadas,
+            $this->promocao,
             $this->ref_cod_instituicao,
             1,
             $this->extra_curricular,
@@ -395,7 +401,7 @@ return new class extends clsCadastro {
         $obj_permissoes = new clsPermissoes();
         $obj_permissoes->permissao_cadastra(578, $this->pessoa_logada, 7, "educar_historico_escolar_lst.php?ref_cod_aluno={$this->ref_cod_aluno}");
 
-        $this->carga_horaria = is_numeric($this->carga_horaria) ? (int) $this->carga_horaria : $this->carga_horaria;
+        $this->carga_horaria = is_numeric($this->carga_horaria) ? (double) $this->carga_horaria : $this->carga_horaria;
         $this->frequencia = $this->fixupFrequencia($this->frequencia);
 
         $faltasGlobalizadas = $this->faltas_globalizadas;
@@ -418,13 +424,14 @@ return new class extends clsCadastro {
             $this->dias_letivos,
             mb_strtoupper($this->escola),
             mb_strtoupper($this->escola_cidade),
-            $this->escola_uf,
+            $this->escola_uf,            
             $this->observacao,
             $this->aprovado,
             null,
             null,
             1,
             $faltasGlobalizadas,
+            $this->promocao,
             $this->ref_cod_instituicao,
             1,
             $this->extra_curricular,

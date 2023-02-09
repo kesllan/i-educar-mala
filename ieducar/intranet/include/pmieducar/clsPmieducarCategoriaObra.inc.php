@@ -116,7 +116,6 @@ class clsPmieducarCategoriaObra extends Model
     {
         if (is_numeric($this->id)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
             if (is_string($this->descricao)) {
                 $descricao = $db->escapeString($this->descricao);

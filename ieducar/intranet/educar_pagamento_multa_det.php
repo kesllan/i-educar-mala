@@ -46,7 +46,6 @@ return new class extends clsDetalhe {
                                        </TR>';
                     $cont  = 0;
                     $total = 0;
-                    $corpo = '';
                     foreach ($lst_divida as $divida) {
                         $total += $divida['valor_multa'];
                         if (($cont % 2) == 0) {

@@ -150,6 +150,11 @@ class clsPmieducarServidorFuncao extends Model
             $whereAnd = ' AND ';
         }
 
+        if (is_string($matricula)) {
+            $filtros .= "{$whereAnd} matricula = '{$matricula}'";
+            $whereAnd = ' AND ';
+        }
+
         $db = new clsBanco();
         $countCampos = count(explode(',', $this->_campos_lista));
         $resultado = [];

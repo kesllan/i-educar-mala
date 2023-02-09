@@ -65,7 +65,6 @@ class clsPmieducarPessoaEducDeficiencia extends Model
     {
         if (is_numeric($this->ref_cod_pessoa_educ) && is_numeric($this->ref_cod_deficiencia)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if ($set) {

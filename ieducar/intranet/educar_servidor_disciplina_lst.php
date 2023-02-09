@@ -220,7 +220,7 @@ return new class extends clsCadastro {
 
     public function Editar()
     {
-        $this->Novo();
+        return $this->Novo();
     }
 
     public function Excluir()

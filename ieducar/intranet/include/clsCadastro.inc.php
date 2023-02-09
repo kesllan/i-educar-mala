@@ -120,7 +120,12 @@ class clsCadastro extends clsCampos
             }
 
             $this->setFlashMessage();
-            $this->Formular();
+
+            if (empty($script) && $this->sucesso && !empty($this->url_sucesso)) {
+                redirecionar($this->url_sucesso);
+            } else {
+                $this->Formular();
+            }
         }
     }
 

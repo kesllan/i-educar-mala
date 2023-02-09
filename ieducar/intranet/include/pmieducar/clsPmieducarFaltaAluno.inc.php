@@ -142,7 +142,6 @@ class clsPmieducarFaltaAluno extends Model
     {
         if (is_numeric($this->cod_falta_aluno) && is_numeric($this->ref_usuario_exc)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_usuario_exc)) {

@@ -53,7 +53,6 @@ return new class extends clsDetalhe {
 
             $cont  = 0;
             $total = 0;
-            $corpo = '';
 
             foreach ($registro as $falta) {
                 if (($cont % 2) == 0) {

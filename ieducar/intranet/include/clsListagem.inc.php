@@ -72,7 +72,7 @@ class clsListagem extends clsCampos
 
                 $path = $uri . '?' . $path;
 
-                $this->simpleRedirect($path);
+                return $this->simpleRedirect($path);
             }
         } else {
             $params = http_build_query($_GET) . '|' . now();

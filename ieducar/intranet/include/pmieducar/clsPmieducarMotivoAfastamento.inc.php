@@ -132,7 +132,6 @@ class clsPmieducarMotivoAfastamento extends Model
         if (is_numeric($this->cod_motivo_afastamento) && is_numeric($this->ref_usuario_exc)
             && is_numeric($this->ref_cod_instituicao)) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_usuario_exc)) {

@@ -235,7 +235,6 @@ class clsPmieducarQuadroHorarioHorarios extends Model
             is_numeric($this->sequencial)
         ) {
             $db = new clsBanco();
-            $gruda = '';
             $set = '';
 
             if (is_numeric($this->ref_cod_instituicao_substituto)) {

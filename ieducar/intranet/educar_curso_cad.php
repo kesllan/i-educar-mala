@@ -288,10 +288,10 @@ return new class extends clsCadastro {
             );
         }
 
-        $this->campoMonetario(
+        $this->campoMonetario(        
             'carga_horaria',
             'Carga Horária',
-            $this->carga_horaria,
+            number_format($this->carga_horaria, 2, ',', '.'),
             7,
             7,
             true

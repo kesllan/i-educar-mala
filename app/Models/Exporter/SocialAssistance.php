@@ -2,7 +2,7 @@
 
 namespace App\Models\Exporter;
 
-use App\Models\Exporter\Builders\EnrollmentEloquentBuilder;
+use App\Models\Exporter\Builders\StudentEloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -22,11 +22,11 @@ class SocialAssistance extends Model
     /**
      * @param Builder $query
      *
-     * @return EnrollmentEloquentBuilder
+     * @return StudentEloquentBuilder
      */
     public function newEloquentBuilder($query)
     {
-        return new EnrollmentEloquentBuilder($query);
+        return new StudentEloquentBuilder($query);
     }
 
     /**
@@ -57,11 +57,6 @@ class SocialAssistance extends Model
     public function getLabel()
     {
         return 'Dados de escolaridade - Assistência Social';
-    }
-
-    public function getDescription()
-    {
-        return 'Os dados exportados serão contabilizados por quantidade de matrículas dos(as) alunos(as), duplicando o(a) aluno(a) caso o mesmo possua mais de uma matrícula no ano filtrado. Opção utilizada para integração com sistemas de Assistência social que coletem dados de escolaridade das famílias atendidas.';
     }
 
     /**

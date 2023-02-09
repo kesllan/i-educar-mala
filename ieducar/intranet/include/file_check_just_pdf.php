@@ -76,6 +76,9 @@ class FileControllerPdf
 
             return false;
         }
+        $this->errorMessage = 'Arquivo invÃ¡lido.';
+
+        return false;
     }
 
     public function getErrorMessage()

@@ -65,7 +65,7 @@ class clsModulesComponenteCurricularAnoEscolar extends Model
             foreach ($this->updateInfo['update'] as $componenteUpdate) {
                 $this->editaComponente(
                     intval($componenteUpdate['id']),
-                    intval($componenteUpdate['carga_horaria']),
+                    floatval($componenteUpdate['carga_horaria']),
                     intval($componenteUpdate['tipo_nota']),
                     $componenteUpdate['anos_letivos']
                 );
@@ -76,7 +76,7 @@ class clsModulesComponenteCurricularAnoEscolar extends Model
             foreach ($this->updateInfo['insert'] as $componenteInsert) {
                 $this->cadastraComponente(
                     intval($componenteInsert['id']),
-                    intval($componenteInsert['carga_horaria']),
+                    floatval($componenteInsert['carga_horaria']),
                     intval($componenteInsert['tipo_nota']),
                     $componenteInsert['anos_letivos']
                 );
@@ -137,9 +137,9 @@ class clsModulesComponenteCurricularAnoEscolar extends Model
             WHERE ano_escolar_id = {$this->ano_escolar_id}
         ";
 
-        $componentesSerie = [];
         $db = new clsBanco();
         $db->Consulta($sql);
+
         while ($db->ProximoRegistro()) {
             $tupla = $db->Tupla();
             $componentesSerie[] = $tupla['componente_curricular_id'];
@@ -149,7 +149,7 @@ class clsModulesComponenteCurricularAnoEscolar extends Model
             return $componentesSerie;
         }
 
-        return $componentesSerie;
+        return false;
     }
 
     private function getAnosLetivosDiff($componenteCurricularId, $arrayAnosLetivos)
@@ -314,7 +314,7 @@ SQL;
 
             if (is_numeric($this->tipo_nota)) {
                 $campos .= "{$gruda}tipo_nota";
-                $valores .= "{$gruda}'{$this->tipo_nota}'";
+                $valores .= "{$gruda}'{$this->tipo_nota}'";                
             }
 
             $sql = "INSERT INTO {$this->_tabela} ( $campos ) VALUES( $valores )";

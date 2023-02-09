@@ -73,6 +73,7 @@ class SchoolHistory
         $discipline->addColumnAttendance($column, $data['frequencia']);
         $discipline->addColumnSchoolDays($column, $data['dias_letivos']);
         $discipline->addColumnGeneralAbsence($column, $data['faltas_globalizadas']);
+        $discipline->addColumnPromotion($column, $data['promocao']);
         $discipline->addColumnStatus($column, $this->getStatus($data['aprovado']));
         $discipline->addColumnTransferred($column, $data['aprovado'] == 4);
         $discipline->addColumnScore($column, $this->getFormattedScore($data['nota']));

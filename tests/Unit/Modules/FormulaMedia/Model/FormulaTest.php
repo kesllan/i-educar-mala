@@ -101,7 +101,7 @@ class FormulaTest extends TestCase
         ]);
 
         $this->assertEquals(8, $average);
-        $this->assertEqualsWithDelta(5.8, $recuperation, 0.00001); # TODO entender o motivo de ser necessário
+        $this->assertEquals(5.8, $recuperation);
     }
 
     /**

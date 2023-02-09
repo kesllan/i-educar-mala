@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ERROR);
+ini_set('display_errors', 1);
+
 return new class extends clsCadastro {
     public $pessoa_logada;
     public $nome_url_sucesso = 'Efetuar cópia';
