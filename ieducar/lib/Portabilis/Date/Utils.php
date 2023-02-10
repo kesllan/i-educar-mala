@@ -93,7 +93,7 @@ class Portabilis_Date_Utils
 
     public static function validaData($date)
     {
-        $dateCheck = (bool) strtotime(implode('-',array_reverse(explode('/',$date))));
+        $dateCheck = (bool) strtotime($date);
 
         if ($dateCheck) {
             $date_arr = explode('/', $date);

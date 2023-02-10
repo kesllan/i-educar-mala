@@ -65,7 +65,7 @@ class clsModulesComponenteCurricularAnoEscolar extends Model
             foreach ($this->updateInfo['update'] as $componenteUpdate) {
                 $this->editaComponente(
                     intval($componenteUpdate['id']),
-                    floatval($componenteUpdate['carga_horaria']),
+                    intval($componenteUpdate['carga_horaria']),
                     intval($componenteUpdate['tipo_nota']),
                     $componenteUpdate['anos_letivos']
                 );
@@ -76,7 +76,7 @@ class clsModulesComponenteCurricularAnoEscolar extends Model
             foreach ($this->updateInfo['insert'] as $componenteInsert) {
                 $this->cadastraComponente(
                     intval($componenteInsert['id']),
-                    floatval($componenteInsert['carga_horaria']),
+                    intval($componenteInsert['carga_horaria']),
                     intval($componenteInsert['tipo_nota']),
                     $componenteInsert['anos_letivos']
                 );

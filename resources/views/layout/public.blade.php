@@ -81,30 +81,18 @@
             <div class="social-icons">
                 <p> Siga-nos nas redes sociais&nbsp;&nbsp;</p>
                 @if(config('legacy.config.facebook_url'))
-                    <a target="_blank" href="{{ config('legacy.config.facebook_url')}}" rel="noopener"><img src="{{ Asset::get('intranet/imagens/icon-social-facebook.png') }}"></a>
+                    <a target="_blank" href="{{ config('legacy.config.facebook_url')}}"><img src="{{ Asset::get('intranet/imagens/icon-social-facebook.png') }}"></a>
                 @endif
                 @if(config('legacy.config.linkedin_url'))
-                    <a target="_blank" href="{{ config('legacy.config.linkedin_url')}}" rel="noopener"><img src="{{ Asset::get('intranet/imagens/icon-social-linkedin.png') }}"></a>
+                    <a target="_blank" href="{{ config('legacy.config.linkedin_url')}}"><img src="{{ Asset::get('intranet/imagens/icon-social-linkedin.png') }}"></a>
                 @endif
                 @if(config('legacy.config.twitter_url'))
-                    <a target="_blank" href="{{ config('legacy.config.twitter_url')}}" rel="noopener"><img src="{{ Asset::get('intranet/imagens/icon-social-twitter.png') }}"></a>
+                    <a target="_blank" href="{{ config('legacy.config.twitter_url')}}"><img src="{{ Asset::get('intranet/imagens/icon-social-twitter.png') }}"></a>
                 @endif
             </div>
         @endif
     </div>
 </div>
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6359f652b0d6371309cbc27d/1ggbmkcuo';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
+
 </body>
 </html>
