@@ -29,6 +29,7 @@ class LegacySchoolHistory extends Model
         'data_exclusao',
         'ativo',
         'faltas_globalizadas',
+        'promocao',
         'nm_serie',
         'origem',
         'extra_curricular',
