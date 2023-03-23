@@ -54,8 +54,6 @@ return new class extends clsCadastro {
 
     public $cb_faltas_globalizadas;
 
-    public $promocao;
-
     public $frequencia;
 
     //------INCLUI DISCIPLINA------//
@@ -81,6 +79,8 @@ return new class extends clsCadastro {
     public $aceleracao;
 
     public $dependencia;
+
+	public $promocao;
 
     public function Inicializar()
     {
@@ -345,8 +345,7 @@ return new class extends clsCadastro {
             null,
             null,
             1,
-            $this->faltas_globalizadas,
-            $this->promocao,
+            $this->faltas_globalizadas,            
             $this->ref_cod_instituicao,
             1,
             $this->extra_curricular,
@@ -360,7 +359,8 @@ return new class extends clsCadastro {
             $this->aceleracao,
             $this->ref_cod_escola,
             !is_null($this->dependencia),
-            $this->posicao
+            $this->posicao,
+        	$this->promocao
         );
         $cadastrou = $obj->cadastra();
 
@@ -430,8 +430,7 @@ return new class extends clsCadastro {
             null,
             null,
             1,
-            $faltasGlobalizadas,
-            $this->promocao,
+            $faltasGlobalizadas,            
             $this->ref_cod_instituicao,
             1,
             $this->extra_curricular,
@@ -445,7 +444,8 @@ return new class extends clsCadastro {
             $this->aceleracao,
             $this->ref_cod_escola,
             !is_null($this->dependencia),
-            $this->posicao
+            $this->posicao,
+        	$this->promocao
         );
 
         $editou = $obj->edita();

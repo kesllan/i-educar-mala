@@ -23,13 +23,13 @@ return new class extends clsDetalhe {
     public $data_cadastro;
     public $data_exclusao;
     public $ativo;
-
     public $ref_cod_instituicao;
     public $nm_serie;
     public $origem;
     public $extra_curricular;
     public $ref_cod_matricula;
     public $frequencia;
+	public $promocao;
 
     public function Gerar()
     {
@@ -46,7 +46,7 @@ return new class extends clsDetalhe {
         }
 
         $obj_aluno = new clsPmieducarAluno();
-        $lst_aluno = $obj_aluno->lista($registro['ref_cod_aluno'], null, null, null, null, null, null, null, null, null, 1);
+        $lst_aluno = $obj_aluno->lista($registro['ref_cod_aluno'], null, null, null, null, null, null, null, null, null, null, 1);
         if (is_array($lst_aluno)) {
             $det_aluno = array_shift($lst_aluno);
             $nm_aluno = $det_aluno['nome_aluno'];
@@ -158,6 +158,10 @@ return new class extends clsDetalhe {
 
         if ($registro['folha']) {
             $this->addDetalhe([ 'Folha', "{$registro['folha']}"]);
+        }
+
+        if ($registro['promocao']) {
+            $this->addDetalhe([ 'promocao', "{$registro['promocao']}"]);
         }
 
         $obj = new clsPmieducarHistoricoDisciplinas();

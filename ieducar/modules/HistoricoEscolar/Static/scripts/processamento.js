@@ -541,6 +541,7 @@
           notas : notas,
           faltas : faltas,
           observacao : $('#observacao').val(),
+          promocao : $('#promocao').val(),
           registro : $('#registro').val(),
           livro : $('#livro').val(),
           folha : $('#folha').val(),

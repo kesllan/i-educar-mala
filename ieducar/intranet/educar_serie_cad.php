@@ -192,7 +192,7 @@ return new class extends clsCadastro {
 
         $this->campoLista('concluinte', 'Concluinte', $opcoes, $this->concluinte);
 
-        $this->campoMonetario('carga_horaria', 'Carga Horária', $this->carga_horaria, 7, 7, true);
+        $this->campoMonetario('carga_horaria', 'Carga Horária', $this->carga_horaria, 6, 6, true);
 
         $this->campoNumero('dias_letivos', 'Dias letivos', $this->dias_letivos, 10, 10, true);
 

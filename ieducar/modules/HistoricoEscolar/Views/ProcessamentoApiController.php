@@ -600,7 +600,7 @@ class ProcessamentoApiController extends Core_Controller_Page_EditController
                         $origem = '', //TODO
                         $this->getRequest()->extra_curricular,
                         $matriculaId,
-                        $this->getPercentualFrequencia(),
+                        $this->getPercentualFrequencia(),                        
                         $this->getRequest()->registro,
                         $this->getRequest()->livro,
                         $this->getRequest()->folha,
@@ -609,7 +609,8 @@ class ProcessamentoApiController extends Core_Controller_Page_EditController
                         null,
                         $dadosMatricula['escola_id'],
                         $this->getRequest()->dependencia,
-                        $this->getRequest()->posicao
+                        $this->getRequest()->posicao,
+                        $this->getRequest()->promocao
                     );
 
                     $historicoEscolar->cadastra();
@@ -641,7 +642,7 @@ class ProcessamentoApiController extends Core_Controller_Page_EditController
                         $origem = '', //TODO
                         $this->getRequest()->extra_curricular,
                         $matriculaId,
-                        $this->getPercentualFrequencia(),
+                        $this->getPercentualFrequencia(),                        
                         $this->getRequest()->registro,
                         $this->getRequest()->livro,
                         $this->getRequest()->folha,
@@ -650,7 +651,8 @@ class ProcessamentoApiController extends Core_Controller_Page_EditController
                         null,
                         $dadosMatricula['escola_id'],
                         $this->getRequest()->dependencia,
-                        $this->getRequest()->posicao
+                        $this->getRequest()->posicao,
+                        $this->getRequest()->promocao
                     );
 
                     $historicoEscolar->edita();

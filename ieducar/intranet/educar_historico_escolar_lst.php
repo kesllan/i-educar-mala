@@ -55,7 +55,7 @@ return new class extends clsListagem {
         $nivel_usuario = $obj_permissao->nivel_acesso($this->pessoa_logada);
         $lista_busca[] = 'Escola';
         $lista_busca[] = 'Instituição';
-        $lista_busca = array_merge($lista_busca, ['Curso', 'Série', 'Registro', 'Livro', 'Folha']);
+        $lista_busca = array_merge($lista_busca, ['Curso', 'Série', 'Registro', 'Livro', 'Folha', 'Promoção']);
 
         $this->addCabecalhos($lista_busca);
 
@@ -103,7 +103,8 @@ return new class extends clsListagem {
             $this->ref_cod_instituicao,
             null,
             $this->extra_curricular,
-            null
+            null,
+        	null
         );
 
         $total = $obj_historico_escolar->_total;
@@ -136,7 +137,7 @@ return new class extends clsListagem {
                 $lista_busca[] = $registro['registro'];
                 $lista_busca[] = $registro['livro'];
                 $lista_busca[] = $registro['folha'];
-
+				$lista_busca[] = $registro['promocao'];
                 $this->addLinhas($lista_busca);
             }
         }

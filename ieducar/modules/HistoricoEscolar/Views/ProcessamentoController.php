@@ -192,6 +192,11 @@ class ProcessamentoController extends Portabilis_Controller_Page_ListController
             " . $campoPosicao . '
 
             <tr>
+                <td><label for=\'promocao\'>Promoção</label></td>
+                <td colspan=\'2\'><input type=\'text\' id=\'promocao\' name=\'promocao\'></input></td>
+            </tr>
+
+            <tr>
                 <td><label for=\'registro\'>Registro (arquivo)</label></td>
                 <td colspan=\'2\'><input type=\'text\' id=\'registro\' name=\'registro\'></input></td>
             </tr>
@@ -268,7 +273,7 @@ class ProcessamentoController extends Portabilis_Controller_Page_ListController
     {
         $obj = new clsPmieducarInstituicao;
 
-        $lst = $obj->lista(null, null, null, null, null, null, null, null, null, null, null, null, null, 1);
+        $lst = $obj->lista(null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1);
 
         return dbBool($lst[0]['controlar_posicao_historicos']);
     }
